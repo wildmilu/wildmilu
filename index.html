@@ -6,12 +6,14 @@
   <title>WildMilu · Fotografía de naturaleza por Milagros</title>
   <meta name="description" content="Galería de fotografía de vida silvestre de Milagros. Aves y fauna capturadas con paciencia y cariño.">
 
-  <!-- Tipografías -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Login del panel (permite volver a /admin tras iniciar sesión) -->
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
 
@@ -40,11 +42,7 @@
   <section class="section" id="galeria-sec">
     <h2 class="section__title">Galería</h2>
     <p class="section__subtitle">Explorá por categoría o mirá todas las fotos</p>
-
-    <!-- Los filtros se generan solos según las categorías de data.js -->
     <div class="filtros" id="filtros"></div>
-
-    <!-- Las tarjetas se generan solas desde data.js -->
     <div class="galeria" id="galeria"></div>
   </section>
 
@@ -90,8 +88,19 @@
     </div>
   </div>
 
-  <!-- Primero los datos, después la lógica -->
-  <script src="js/data.js"></script>
   <script src="js/main.js"></script>
+
+  <!-- Al iniciar sesión desde un mail de invitación, redirige al panel -->
+  <script>
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on("init", user => {
+        if (!user) {
+          window.netlifyIdentity.on("login", () => {
+            document.location.href = "/admin/";
+          });
+        }
+      });
+    }
+  </script>
 </body>
 </html>

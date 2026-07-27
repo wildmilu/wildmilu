@@ -1,0 +1,66 @@
+# =====================================================================
+# WildMilu · Configuración del panel (Decap CMS)
+# ---------------------------------------------------------------------
+# Este archivo define QUÉ puede editar Milagros desde el panel /admin.
+# Casi nunca hay que tocarlo. Si querés agregar una categoría nueva,
+# sumala en la lista "options" de "categoria" más abajo.
+# =====================================================================
+
+backend:
+  name: git-gateway          # login por email, sin necesidad de cuenta GitHub
+  branch: main               # rama del repo donde se guardan los cambios
+  # Mensajes lindos en el historial de Git (opcional, estético)
+  commit_messages:
+    create: 'Agregar foto "{{slug}}"'
+    update: 'Actualizar galería'
+    delete: 'Eliminar foto "{{slug}}"'
+    uploadMedia: 'Subir imagen "{{path}}"'
+    deleteMedia: 'Eliminar imagen "{{path}}"'
+
+# Idioma del panel
+locale: es
+
+# Dónde se guardan las imágenes que sube Milagros
+media_folder: "images"       # carpeta real en el repo
+public_folder: "/images"     # ruta con la que se referencian en la web
+
+# Texto de ayuda arriba del panel
+site_url: https://wildmilu.netlify.app
+logo_url: https://wildmilu.netlify.app/images/picaflor-cometa.jpg
+
+collections:
+  - name: galeria
+    label: "Galería de WildMilu"
+    delete: false
+    files:
+      - name: fotos
+        label: "📷 Todas las fotos"
+        file: "fotos.json"
+        format: json
+        description: >
+          Acá agregás, editás o eliminás fotos. Tocá "Fotos" para ver la lista,
+          usá el botón de abajo para agregar una nueva y arrastrá para reordenar.
+        fields:
+          - name: fotos
+            label: "Fotos"
+            label_singular: "Foto"
+            widget: list
+            summary: "{{fields.titulo}}  ·  {{fields.categoria}}"
+            fields:
+              - { name: src, label: "Imagen", widget: image, hint: "Arrastrá o elegí la foto. Ideal horizontal." }
+              - { name: titulo, label: "Título", widget: string }
+              - { name: especie, label: "Especie (nombre científico o común)", widget: string, required: false }
+              - name: categoria
+                label: "Categoría (hábitat)"
+                widget: select
+                default: "Otra fauna"
+                options:
+                  - "Jardín"
+                  - "Bosque"
+                  - "Humedales"
+                  - "Rapaces"
+                  - "Pastizal"
+                  - "Otra fauna"
+              - { name: lugar, label: "Lugar donde la sacaste", widget: string, required: false }
+              - { name: fecha, label: "Fecha (ej: Enero 2026)", widget: string, required: false }
+              - { name: descripcion, label: "Descripción / anécdota", widget: text, required: false }

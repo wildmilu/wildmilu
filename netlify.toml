@@ -1,23 +1,9 @@
-# =====================================================================
-# WildMilu · Configuración de Netlify
-# ---------------------------------------------------------------------
-# Como el sitio es HTML/CSS/JS puro (sin build), no hace falta comando
-# de compilación. Netlify solo publica la carpeta tal cual.
-# =====================================================================
-
+# Configuración de Netlify para WildMilu (sitio estático, sin build)
 [build]
-  # No hay proceso de build: publicamos la raíz del repo.
   publish = "."
   command = ""
 
-# Cabeceras recomendadas (seguridad + cache de imágenes)
 [[headers]]
   for = "/images/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
+    Cache-Control = "public, max-age=604800, must-revalidate"

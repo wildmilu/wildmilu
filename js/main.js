@@ -1,18 +1,37 @@
 /* =====================================================================
    WildMilu · LÓGICA DE LA GALERÍA
    ---------------------------------------------------------------------
-   No necesitás tocar este archivo para agregar fotos (eso se hace en
-   data.js). Acá vive la magia: renderizado, filtros y lightbox.
+   Las fotos ahora viven en  fotos.json  (lo edita el panel /admin).
+   Este archivo lee ese JSON y arma la galería, los filtros y el visor.
+   No hace falta tocarlo para agregar fotos.
    ===================================================================== */
 
 const galeria   = document.getElementById("galeria");
 const filtrosEl = document.getElementById("filtros");
 
-let fotosVisibles = [...FOTOS]; // lo que se está mostrando (para el lightbox)
+let FOTOS = [];
+let fotosVisibles = [];
+
+/* ---------- 0. Cargar los datos desde fotos.json ---------- */
+fetch("fotos.json?" + Date.now())          // el ?... evita caché vieja
+  .then(r => r.json())
+  .then(data => {
+    FOTOS = data.fotos || [];
+    fotosVisibles = [...FOTOS];
+    construirFiltros();
+    renderizar(FOTOS);
+  })
+  .catch(err => {
+    console.error("No se pudo cargar fotos.json:", err);
+    galeria.innerHTML =
+      "<p style='text-align:center;color:#8a8578'>No se pudieron cargar las fotos. " +
+      "Si estás abriendo el sitio localmente, usá un servidor (ver README).</p>";
+  });
 
 /* ---------- 1. Construir botones de filtro dinámicamente ---------- */
 function construirFiltros() {
-  const categorias = ["Todas", ...new Set(FOTOS.map(f => f.categoria))];
+  filtrosEl.innerHTML = "";
+  const categorias = ["Todas", ...new Set(FOTOS.map(f => f.categoria).filter(Boolean))];
   categorias.forEach((cat, i) => {
     const btn = document.createElement("button");
     btn.className = "filtro" + (i === 0 ? " activo" : "");
@@ -41,7 +60,7 @@ function renderizar(lista) {
     card.innerHTML = `
       <img src="${foto.src}" alt="${foto.titulo}" loading="lazy">
       <div class="card__info">
-        <div class="card__titulo">${foto.titulo}</div>
+        <div class="card__titulo">${foto.titulo || ""}</div>
         <div class="card__especie">${foto.especie || ""}</div>
       </div>`;
     card.addEventListener("click", () => abrirLightbox(indice));
@@ -68,7 +87,7 @@ function mostrarFoto() {
   const foto = fotosVisibles[indiceActual];
   lbImg.src = foto.src;
   lbImg.alt = foto.titulo;
-  lbTitulo.textContent = foto.titulo;
+  lbTitulo.textContent = foto.titulo || "";
   lbEspecie.textContent = foto.especie || "";
   const partes = [foto.lugar, foto.fecha].filter(Boolean).join(" · ");
   lbDetalle.textContent = [partes, foto.descripcion].filter(Boolean).join(" — ");
@@ -95,7 +114,3 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft")  cambiar(-1);
   if (e.key === "ArrowRight") cambiar(1);
 });
-
-/* ---------- 5. Arrancar ---------- */
-construirFiltros();
-renderizar(FOTOS);

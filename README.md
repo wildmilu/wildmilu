@@ -1,50 +1,49 @@
 # 🐦 WildMilu — Fotografía de naturaleza de Milagros
 
-Sitio web estático, liviano y fácil de mantener. Sin frameworks ni build:
-son solo archivos que cualquier navegador entiende.
+Sitio web estático + panel de administración para que Milagros cargue fotos sola.
 
 ## 📂 Estructura
 ```
 wildmilu/
-├── index.html          → la página (estructura y textos)
-├── 404.html            → página de error personalizada
-├── css/styles.css      → estilos (colores y tipografías en :root)
-├── js/data.js          → 👈 TUS FOTOS viven acá (lo único que se edita)
-├── js/main.js          → lógica (galería, filtros, visor). No hace falta tocar.
-├── images/             → las fotos
-├── netlify.toml        → config de publicación en Netlify
-└── DEPLOY.md           → 🚀 guía paso a paso para publicar online
+├── index.html          → la página principal
+├── fotos.json          → 👈 los datos de las fotos (los edita el panel)
+├── css/styles.css      → estilos (colores/tipografías en :root)
+├── js/main.js          → lógica: lee fotos.json y arma la galería
+├── images/             → las fotos (optimizadas para web)
+├── admin/              → 🔐 el panel de administración
+│   ├── index.html
+│   └── config.yml       → define qué puede editar Milagros
+├── netlify.toml         → config de hosting
+├── ACTIVAR-PANEL.md     → 🔐 pasos para vos: activar el login en Netlify
+├── GUIA-MILAGROS.md     → 🐦 guía simple para que Mili suba fotos
+├── DEPLOY.md            → guía original de publicación
+└── README.md            → este archivo
 ```
 
-## ▶️ Cómo verlo en tu compu
-Doble clic en `index.html`, o mejor con un servidor local:
+## 🚀 Estado
+- ✅ Sitio publicado en Netlify.
+- ⏳ Panel /admin: falta activar el login → seguí **ACTIVAR-PANEL.md**.
+
+## ⚙️ Cómo funciona ahora
+Las fotos ya NO están en el código: viven en **`fotos.json`**, que el panel
+`/admin` edita por vos. El sitio lee ese archivo y arma la galería sola.
+
+## ▶️ Verlo local
+Como ahora usa `fetch`, hay que servirlo (no abrir con doble clic):
 ```bash
 cd wildmilu
 python -m http.server 8000
 ```
 Y entrá a http://localhost:8000
 
-## 🚀 Cómo publicarlo online
-Seguí la guía **DEPLOY.md** (GitHub + Netlify, paso a paso).
+## ➕ Agregar fotos
+- **Milagros:** desde el panel → ver **GUIA-MILAGROS.md**.
+- **A mano (vos):** editás `fotos.json` y hacés `git push`.
 
-## ➕ Cómo agregar / editar una foto (para Milagros)
-1. Copiá la imagen en la carpeta `images/`.
-2. Abrí `js/data.js` y duplicá un bloque `{ ... }`.
-3. Editá: titulo, especie, categoria, lugar, fecha, descripcion.
-4. Guardá y recargá. La galería y los filtros se actualizan solos. ✅
-
-**Categorías actuales:** Jardín · Bosque · Humedales · Rapaces · Pastizal · Otra fauna
-
-## ✏️ Pendientes para completar
-- Revisar/corregir las **especies** (son una primera estimación).
-- Completar **lugar** y **fecha** de cada foto (están vacíos a propósito).
+**Categorías:** Jardín · Bosque · Humedales · Rapaces · Pastizal · Otra fauna
 
 ## 🎨 Personalizar
-Los colores y tipografías están al inicio de `css/styles.css` (bloque `:root`).
-Los textos (hero, "Sobre Milagros", contacto) se editan en `index.html`.
-
-## ➡️ Próxima etapa
-Panel `/admin` (Decap CMS) para que Mili suba fotos sola desde una web,
-sin tocar código. Se suma sobre este mismo repo.
+Colores/tipografías: `:root` al inicio de `css/styles.css`.
+Textos (hero, "Sobre Milagros"): en `index.html`.
 
 Hecho con cariño para sorprender a Milagros. 💚
