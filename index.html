@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WildMilu · Fotografía de naturaleza por Milagros</title>
+  <meta name="description" content="Galería de fotografía de vida silvestre de Milagros. Aves y fauna capturadas con paciencia y cariño.">
+
+  <!-- Tipografías -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ===================== NAVBAR ===================== -->
+  <nav class="nav">
+    <div class="nav__logo">Wild<span>Milu</span></div>
+    <ul class="nav__links">
+      <li><a href="#galeria-sec">Galería</a></li>
+      <li><a href="#sobre">Sobre Milagros</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+  </nav>
+
+  <!-- ===================== HERO ===================== -->
+  <header class="hero">
+    <p class="hero__kicker">Fotografía de naturaleza</p>
+    <h1 class="hero__title">Wild<span>Milu</span></h1>
+    <p class="hero__subtitle">
+      La vida silvestre vista por los ojos de Milagros.
+      Cada foto, un instante de paciencia, luz y naturaleza.
+    </p>
+    <a href="#galeria-sec" class="hero__btn">Ver la galería</a>
+  </header>
+
+  <!-- ===================== GALERÍA ===================== -->
+  <section class="section" id="galeria-sec">
+    <h2 class="section__title">Galería</h2>
+    <p class="section__subtitle">Explorá por categoría o mirá todas las fotos</p>
+
+    <!-- Los filtros se generan solos según las categorías de data.js -->
+    <div class="filtros" id="filtros"></div>
+
+    <!-- Las tarjetas se generan solas desde data.js -->
+    <div class="galeria" id="galeria"></div>
+  </section>
+
+  <!-- ===================== SOBRE MILAGROS ===================== -->
+  <section class="section sobre" id="sobre">
+    <div class="sobre__grid">
+      <img class="sobre__foto" src="images/cardenal.jpg" alt="Una de las fotos de Milagros">
+      <div class="sobre__texto">
+        <h2>Sobre Milagros</h2>
+        <p>
+          Desde las sierras de Córdoba, Milagros persigue la luz y el instante
+          justo en que un animal se deja ver. Lo que empezó como paseos con
+          la cámara se transformó en una forma de mirar el mundo con más calma.
+        </p>
+        <p>
+          Cada imagen de esta galería nace de horas de espera, silencio y respeto
+          por la naturaleza. Bienvenido/a a su rincón de vida silvestre. 🐦
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer" id="contacto">
+    <div class="footer__logo">Wild<span>Milu</span></div>
+    <p>Fotografía de naturaleza por Milagros</p>
+    <p>📷 Seguí sus capturas · ✉️ contacto@wildmilu.com</p>
+    <small>© 2026 WildMilu · Hecho con cariño</small>
+  </footer>
+
+  <!-- ===================== LIGHTBOX ===================== -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox__cerrar" id="lb-cerrar" aria-label="Cerrar">&times;</button>
+    <button class="lightbox__nav prev" id="lb-prev" aria-label="Anterior">&#8249;</button>
+    <button class="lightbox__nav next" id="lb-next" aria-label="Siguiente">&#8250;</button>
+    <div class="lightbox__contenido">
+      <img class="lightbox__img" id="lb-img" src="" alt="">
+      <div class="lightbox__meta">
+        <h3 id="lb-titulo"></h3>
+        <p class="esp" id="lb-especie"></p>
+        <p class="detalle" id="lb-detalle"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Primero los datos, después la lógica -->
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
