@@ -1,15 +1,13 @@
 # =====================================================================
 # WildMilu · Configuración del panel (Decap CMS)
-# ---------------------------------------------------------------------
-# Este archivo define QUÉ puede editar Milagros desde el panel /admin.
-# Casi nunca hay que tocarlo. Si querés agregar una categoría nueva,
-# sumala en la lista "options" de "categoria" más abajo.
 # =====================================================================
 
 backend:
-  name: git-gateway          # login por email, sin necesidad de cuenta GitHub
-  branch: main               # rama del repo donde se guardan los cambios
-  # Mensajes lindos en el historial de Git (opcional, estético)
+  name: git-gateway
+  branch: main
+  # 👇 Declarar el repo ayuda a que las imágenes se resuelvan bien
+  #    cuando se usa git-gateway (evita rutas rotas).
+  repo: Pablote9D/wildmilu
   commit_messages:
     create: 'Agregar foto "{{slug}}"'
     update: 'Actualizar galería'
@@ -17,16 +15,22 @@ backend:
     uploadMedia: 'Subir imagen "{{path}}"'
     deleteMedia: 'Eliminar imagen "{{path}}"'
 
-# Idioma del panel
 locale: es
+
+# URL del sitio en producción: clave para que Decap sepa desde dónde
+# cargar las imágenes ya publicadas (arregla la vista previa).
+site_url: https://wildmilu.netlify.app
+display_url: https://wildmilu.netlify.app
 
 # Dónde se guardan las imágenes que sube Milagros
 media_folder: "images"       # carpeta real en el repo
 public_folder: "/images"     # ruta con la que se referencian en la web
 
-# Texto de ayuda arriba del panel
-site_url: https://wildmilu.netlify.app
-logo_url: https://wildmilu.netlify.app/images/picaflor-cometa.jpg
+# Límite de tamaño de subida (5 MB) para que no falle con fotos grandes
+media_library:
+  name: default
+  config:
+    max_file_size: 5242880   # 5 MB en bytes
 
 collections:
   - name: galeria
@@ -47,7 +51,7 @@ collections:
             widget: list
             summary: "{{fields.titulo}}  ·  {{fields.categoria}}"
             fields:
-              - { name: src, label: "Imagen", widget: image, hint: "Arrastrá o elegí la foto. Ideal horizontal." }
+              - { name: src, label: "Imagen", widget: image, hint: "Arrastrá o elegí la foto. Ideal horizontal y liviana (< 2 MB)." }
               - { name: titulo, label: "Título", widget: string }
               - { name: especie, label: "Especie (nombre científico o común)", widget: string, required: false }
               - name: categoria
