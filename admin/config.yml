@@ -5,8 +5,7 @@
 backend:
   name: git-gateway
   branch: main
-  # 👇 Declarar el repo ayuda a que las imágenes se resuelvan bien
-  #    cuando se usa git-gateway (evita rutas rotas).
+  # Declarar el repo ayuda a resolver bien las rutas de imágenes
   repo: Pablote9D/wildmilu
   commit_messages:
     create: 'Agregar foto "{{slug}}"'
@@ -17,8 +16,8 @@ backend:
 
 locale: es
 
-# URL del sitio en producción: clave para que Decap sepa desde dónde
-# cargar las imágenes ya publicadas (arregla la vista previa).
+# URL del sitio en producción: para que el panel sepa desde dónde
+# cargar las imágenes ya publicadas.
 site_url: https://wildmilu.netlify.app
 display_url: https://wildmilu.netlify.app
 
@@ -26,11 +25,12 @@ display_url: https://wildmilu.netlify.app
 media_folder: "images"       # carpeta real en el repo
 public_folder: "/images"     # ruta con la que se referencian en la web
 
-# Límite de tamaño de subida (5 MB) para que no falle con fotos grandes
+# ⚠️ OJO: para la librería de medios integrada NO se pone "name".
+# Poner "name: default" hace que el CMS busque una librería externa
+# inexistente y rompe con "Missing external media library".
 media_library:
-  name: default
   config:
-    max_file_size: 5242880   # 5 MB en bytes
+    max_file_size: 10485760   # 10 MB, por si sube fotos grandes
 
 collections:
   - name: galeria
