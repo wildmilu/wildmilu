@@ -1,7 +1,7 @@
 /* =====================================================================
    WildMilu · LÓGICA DE LA GALERÍA
    ---------------------------------------------------------------------
-   Las fotos ahora viven en  fotos.json  (lo edita el panel /admin).
+   Las fotos viven en  fotos.json  (lo edita el panel /admin).
    Este archivo lee ese JSON y arma la galería, los filtros y el visor.
    No hace falta tocarlo para agregar fotos.
    ===================================================================== */
@@ -12,11 +12,22 @@ const filtrosEl = document.getElementById("filtros");
 let FOTOS = [];
 let fotosVisibles = [];
 
+/* ---------------------------------------------------------------------
+   Normaliza la ruta de una imagen.
+   Tolera que el panel escriba "images/x.jpg", "/images/x.jpg" o una URL.
+   --------------------------------------------------------------------- */
+function normalizarRuta(src) {
+  if (!src) return "";
+  const s = String(src).trim();
+  if (/^https?:\/\//i.test(s)) return s;   // URL completa: se deja igual
+  return s.startsWith("/") ? s : "/" + s;  // ruta relativa: se le pone "/"
+}
+
 /* ---------- 0. Cargar los datos desde fotos.json ---------- */
 fetch("fotos.json?" + Date.now())          // el ?... evita caché vieja
   .then(r => r.json())
   .then(data => {
-    FOTOS = data.fotos || [];
+    FOTOS = (data.fotos || []).filter(f => f && f.src);  // ignora entradas vacías
     fotosVisibles = [...FOTOS];
     construirFiltros();
     renderizar(FOTOS);
@@ -57,19 +68,34 @@ function renderizar(lista) {
   lista.forEach((foto, indice) => {
     const card = document.createElement("div");
     card.className = "card";
-    card.innerHTML = `
-      <img src="${foto.src}" alt="${foto.titulo}" loading="lazy">
-      <div class="card__info">
-        <div class="card__titulo">${foto.titulo || ""}</div>
-        <div class="card__especie">${foto.especie || ""}</div>
-      </div>`;
+
+    const img = document.createElement("img");
+    img.src = normalizarRuta(foto.src);
+    img.alt = foto.titulo || "Foto de WildMilu";
+    img.loading = "lazy";
+
+    // Si la imagen no carga (ruta mal escrita, archivo faltante),
+    // se oculta la tarjeta en vez de mostrar el ícono roto.
+    img.addEventListener("error", () => {
+      console.warn("No se encontró la imagen:", img.src);
+      card.style.display = "none";
+    });
+
+    const info = document.createElement("div");
+    info.className = "card__info";
+    info.innerHTML = `
+      <div class="card__titulo">${foto.titulo || ""}</div>
+      <div class="card__especie">${foto.especie || ""}</div>`;
+
+    card.appendChild(img);
+    card.appendChild(info);
     card.addEventListener("click", () => abrirLightbox(indice));
     galeria.appendChild(card);
   });
 }
 
 /* ---------- 4. Lightbox (visor ampliado) ---------- */
-const lightbox = document.getElementById("lightbox");
+const lightbox  = document.getElementById("lightbox");
 const lbImg     = document.getElementById("lb-img");
 const lbTitulo  = document.getElementById("lb-titulo");
 const lbEspecie = document.getElementById("lb-especie");
@@ -85,9 +111,10 @@ function abrirLightbox(indice) {
 
 function mostrarFoto() {
   const foto = fotosVisibles[indiceActual];
-  lbImg.src = foto.src;
-  lbImg.alt = foto.titulo;
-  lbTitulo.textContent = foto.titulo || "";
+  if (!foto) return;
+  lbImg.src = normalizarRuta(foto.src);
+  lbImg.alt = foto.titulo || "";
+  lbTitulo.textContent  = foto.titulo || "";
   lbEspecie.textContent = foto.especie || "";
   const partes = [foto.lugar, foto.fecha].filter(Boolean).join(" · ");
   lbDetalle.textContent = [partes, foto.descripcion].filter(Boolean).join(" — ");
