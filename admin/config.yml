@@ -1,12 +1,15 @@
 # =====================================================================
 # WildMilu · Configuración del panel (Decap CMS)
+# ---------------------------------------------------------------------
+# ⚠️ NOTA IMPORTANTE (esto causó el error "Missing external media library"):
+#    NO poner un bloque "media_library:" en la raíz de este archivo.
+#    Ese bloque es SOLO para librerías externas (Cloudinary, Uploadcare).
+#    El límite de tamaño va DENTRO del campo de imagen (ver más abajo).
 # =====================================================================
 
 backend:
   name: git-gateway
   branch: main
-  # Declarar el repo ayuda a resolver bien las rutas de imágenes
-  repo: Pablote9D/wildmilu
   commit_messages:
     create: 'Agregar foto "{{slug}}"'
     update: 'Actualizar galería'
@@ -16,21 +19,13 @@ backend:
 
 locale: es
 
-# URL del sitio en producción: para que el panel sepa desde dónde
-# cargar las imágenes ya publicadas.
+# URL del sitio publicado (botón "Ver sitio" en el panel)
 site_url: https://wildmilu.netlify.app
 display_url: https://wildmilu.netlify.app
 
 # Dónde se guardan las imágenes que sube Milagros
-media_folder: "images"       # carpeta real en el repo
-public_folder: "/images"     # ruta con la que se referencian en la web
-
-# ⚠️ OJO: para la librería de medios integrada NO se pone "name".
-# Poner "name: default" hace que el CMS busque una librería externa
-# inexistente y rompe con "Missing external media library".
-media_library:
-  config:
-    max_file_size: 10485760   # 10 MB, por si sube fotos grandes
+media_folder: "images"       # carpeta real dentro del repo
+public_folder: "/images"     # ruta con la que se ven en la web
 
 collections:
   - name: galeria
@@ -51,7 +46,15 @@ collections:
             widget: list
             summary: "{{fields.titulo}}  ·  {{fields.categoria}}"
             fields:
-              - { name: src, label: "Imagen", widget: image, hint: "Arrastrá o elegí la foto. Ideal horizontal y liviana (< 2 MB)." }
+              # 👇 El límite de tamaño va ACÁ, dentro del campo de imagen
+              - name: src
+                label: "Imagen"
+                widget: image
+                hint: "Arrastrá o elegí la foto. Ideal horizontal y liviana."
+                media_library:
+                  config:
+                    max_file_size: 10485760   # 10 MB (en bytes)
+
               - { name: titulo, label: "Título", widget: string }
               - { name: especie, label: "Especie (nombre científico o común)", widget: string, required: false }
               - name: categoria
