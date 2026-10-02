@@ -1,69 +1,60 @@
 # 🐦 WildMilu · Cómo cargar tus fotos (guía para Milagros)
 
 ¡Hola Mili! 💚 Este es tu sitio de fotos. Cargar una foto nueva es súper fácil
-y no necesitás saber nada de programación. Seguí estos pasos.
+y no necesitás saber nada de programación.
 
 ---
 
 ## 🔑 Entrar al panel
 
-1. Abrí en el navegador: **wildmilu.netlify.app/admin**
-2. Poné tu email y tu contraseña.
-3. ¡Listo! Vas a ver tu galería.
+1. Abrí en el navegador: **wildmilu.github.io/admin**
+2. La primera vez te pide una **llave**: te la pasa Pablo. Pegala, dejá
+   tildado *"Recordarme"* y tocá **Entrar**.
+3. ¡Listo! Las próximas veces entrás directo.
 
 ---
 
 ## ➕ Agregar una foto nueva
 
-1. Entrá a **"Galería de WildMilu"**.
-2. Tocá **"Fotos"** para ver la lista de todas tus fotos.
-3. Abajo de todo, tocá el botón **"Add Foto"** (Agregar foto).
-4. Completá los campos:
-   - **Imagen:** arrastrá o elegí la foto de tu compu/celu 📷
+1. Tocá **"+ Agregar foto"**.
+2. Tocá **"Elegir foto"** y buscala en tu compu o celu 📷
+   (no te preocupes por el tamaño: el panel la achica sola).
+3. Completá:
    - **Título:** el nombre que querés que se vea (ej: *"Zorzal al amanecer"*)
-   - **Especie:** el nombre del bicho (si lo sabés; si no, dejalo vacío)
-   - **Categoría:** elegí del menú (Jardín, Bosque, Humedales, Rapaces,
-     Pastizal, Otra fauna)
-   - **Lugar:** dónde la sacaste
-   - **Fecha:** cuándo (ej: *"Enero 2026"*)
+   - **Especie:** el nombre del bicho (si no lo sabés, dejalo vacío)
+   - **Categoría:** Jardín, Bosque, Humedales, Rapaces, Pastizal u Otra fauna
+   - **Lugar** y **Fecha** (ej: *"Enero 2026"*)
    - **Descripción:** una frase o anécdota (opcional)
-5. Arriba a la derecha, tocá **"Publish" → "Publish now"** (Publicar).
-6. Esperá un minutito y recargá **wildmilu.netlify.app**. ¡Tu foto ya está! 🎉
+4. Tocá **Guardar**. La foto aparece primera en la lista con la etiqueta *nueva*.
+5. Arriba aparece una barra verde: tocá **Publicar**. 🎉
+6. En 1-2 minutos ya se ve en la web.
+
+> 💡 Podés hacer varios cambios y publicar todo junto al final.
 
 ---
 
-## ✏️ Editar o corregir una foto
+## ✏️ Editar una foto
+Tocá **Editar**, cambiá lo que quieras (también podés cambiar la imagen) →
+**Guardar** → **Publicar**.
 
-1. En la lista de **"Fotos"**, tocá la que querés cambiar.
-2. Editá lo que quieras (título, especie, descripción...).
-3. **Publish → Publish now**. Listo.
+> 💡 Tip: completá el **lugar** y la **fecha** de las fotos que están vacías, y
+> corregí las especies que dejó Pablo (algunas son aproximadas).
 
-> 💡 Tip: también podés **corregir las especies** que dejó Pablo (algunas son
-> aproximadas) y **completar el lugar y la fecha** de cada foto.
-
----
-
-## 🔀 Reordenar las fotos
-
-En la lista de **"Fotos"**, arrastrá cada foto de las "manijas" (⠿) para
-cambiar el orden en que aparecen en la web.
-
----
+## 🔀 Cambiar el orden
+Con las flechitas **↑ ↓** de cada foto → **Publicar**.
 
 ## 🗑️ Borrar una foto
+**Borrar** → confirmar → **Publicar**.
 
-En la lista, tocá el ícono de basura 🗑️ al lado de la foto → **Publish**.
+## ↩️ Me equivoqué
+Si todavía no publicaste, tocá **Descartar** y vuelve todo como estaba.
 
 ---
 
 ## 💡 Consejos
+- Las **fotos horizontales** quedan mejor en la galería.
+- Si no ves el cambio en la web, esperá un minuto más y recargá
+  (**Ctrl + F5** en la compu).
+- Si el panel dice que **la llave venció**, avisale a Pablo.
 
-- **Fotos horizontales** quedan mejor en la galería.
-- Si podés, **achicá las fotos** antes de subirlas (que no pesen más de 1-2 MB),
-  así el sitio carga rapidito para todos. 🚀
-- Cada cambio tarda **~1 minuto** en verse en la web (el sitio se "reconstruye"
-  solo). Si no lo ves, recargá con **Ctrl + F5**.
-
----
-
-¡A disfrutar tu rincón de fotos! Cualquier cosa, Pablo te da una mano. 🐦💚
+¡A disfrutar tu rincón de fotos! 🐦💚

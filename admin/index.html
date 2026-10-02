@@ -1,16 +1,107 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
   <title>WildMilu · Panel de Milagros</title>
-  <!-- Login (Netlify Identity) -->
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-  <!-- ⚠️ IMPORTANTE: versión FIJA de Decap (no "^3.0.0").
-       La 3.13.0+ tiene un bug que rompe la vista previa de imágenes,
-       por eso fijamos una versión estable anterior. -->
-  <script src="https://unpkg.com/decap-cms@3.12.0/dist/decap-cms.js"></script>
+
+  <!-- ===================== LOGIN ===================== -->
+  <main class="login" id="vista-login" hidden>
+    <div class="login__caja">
+      <div class="logo">Wild<span>Milu</span></div>
+      <p class="login__sub">Panel de Milagros</p>
+      <form id="form-login">
+        <label for="token">Llave de acceso</label>
+        <input id="token" type="password" autocomplete="current-password" placeholder="github_pat_..." required>
+        <label class="check"><input id="recordar" type="checkbox" checked> Recordarme en este dispositivo</label>
+        <button class="btn btn--primario" type="submit">Entrar</button>
+        <p class="error" id="login-error" hidden></p>
+      </form>
+      <p class="ayuda">¿No tenés la llave? Pedísela a Pablo 💚</p>
+    </div>
+  </main>
+
+  <!-- ===================== PANEL ===================== -->
+  <div id="vista-panel" hidden>
+    <header class="barra">
+      <div class="logo">Wild<span>Milu</span> <small>panel</small></div>
+      <nav>
+        <a class="btn btn--suave" href="../" target="_blank" rel="noopener">Ver sitio</a>
+        <button class="btn btn--suave" id="btn-salir" type="button">Salir</button>
+      </nav>
+    </header>
+
+    <div class="pendientes" id="pendientes" hidden>
+      <span id="pendientes-texto"></span>
+      <div>
+        <button class="btn btn--suave" id="btn-descartar" type="button">Descartar</button>
+        <button class="btn btn--primario" id="btn-publicar" type="button">Publicar</button>
+      </div>
+    </div>
+
+    <main class="contenido">
+      <div class="encabezado">
+        <h1>Tus fotos <span id="contador"></span></h1>
+        <button class="btn btn--primario" id="btn-agregar" type="button">+ Agregar foto</button>
+      </div>
+      <p class="ayuda">Los cambios se guardan acá y se ven en la web recién cuando tocás <b>Publicar</b>.</p>
+      <ul class="lista" id="lista"></ul>
+    </main>
+  </div>
+
+  <!-- ===================== FORMULARIO FOTO ===================== -->
+  <dialog id="dialogo">
+    <form id="form-foto" method="dialog">
+      <h2 id="dialogo-titulo">Agregar foto</h2>
+
+      <div class="campo-imagen">
+        <img id="vista-previa" alt="" hidden>
+        <label class="btn btn--suave" for="archivo" id="archivo-label">Elegir foto</label>
+        <input id="archivo" type="file" accept="image/*" hidden>
+        <small id="archivo-info"></small>
+      </div>
+
+      <label for="f-titulo">Título *</label>
+      <input id="f-titulo" required placeholder="Ej: Zorzal al amanecer">
+
+      <label for="f-especie">Especie</label>
+      <input id="f-especie" placeholder="Nombre común o científico">
+
+      <label for="f-categoria">Categoría</label>
+      <select id="f-categoria"></select>
+
+      <div class="fila">
+        <div>
+          <label for="f-lugar">Lugar</label>
+          <input id="f-lugar" placeholder="Dónde la sacaste">
+        </div>
+        <div>
+          <label for="f-fecha">Fecha</label>
+          <input id="f-fecha" placeholder="Ej: Enero 2026">
+        </div>
+      </div>
+
+      <label for="f-descripcion">Descripción / anécdota</label>
+      <textarea id="f-descripcion" rows="3"></textarea>
+
+      <p class="error" id="form-error" hidden></p>
+
+      <div class="acciones">
+        <button class="btn btn--suave" type="button" id="btn-cancelar">Cancelar</button>
+        <button class="btn btn--primario" type="submit" id="btn-guardar">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="aviso" id="aviso" hidden></div>
+
+  <script src="admin.js"></script>
 </body>
 </html>

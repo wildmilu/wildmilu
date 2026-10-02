@@ -1,6 +1,8 @@
 # 🐦 WildMilu — Fotografía de naturaleza de Milagros
 
-Sitio web estático + panel de administración para que Milagros cargue fotos sola.
+Sitio web estático + panel propio para que Milagros cargue fotos sola.
+Sin servidores ni servicios pagos: se aloja gratis en GitHub Pages
+→ https://wildmilu.github.io
 
 ## 📂 Estructura
 ```
@@ -9,38 +11,41 @@ wildmilu/
 ├── fotos.json          → 👈 los datos de las fotos (los edita el panel)
 ├── css/styles.css      → estilos (colores/tipografías en :root)
 ├── js/main.js          → lógica: lee fotos.json y arma la galería
-├── images/             → las fotos (optimizadas para web)
-├── admin/              → 🔐 el panel de administración
+├── images/             → las fotos
+├── admin/              → 🔐 el panel de Milagros
 │   ├── index.html
-│   └── config.yml       → define qué puede editar Milagros
-├── netlify.toml         → config de hosting
-├── ACTIVAR-PANEL.md     → 🔐 pasos para vos: activar el login en Netlify
-├── GUIA-MILAGROS.md     → 🐦 guía simple para que Mili suba fotos
-├── DEPLOY.md            → guía original de publicación
-└── README.md            → este archivo
+│   ├── admin.js        → habla con la API de GitHub y achica las fotos
+│   └── admin.css
+├── 404.html
+├── PUBLICAR.md         → 🚀 para vos: hosting gratis + crear la llave del panel
+├── GUIA-MILAGROS.md    → 🐦 guía simple para que Mili suba fotos
+└── README.md           → este archivo
 ```
 
-## 🚀 Estado
-- ✅ Sitio publicado en Netlify.
-- ⏳ Panel /admin: falta activar el login → seguí **ACTIVAR-PANEL.md**.
-
-## ⚙️ Cómo funciona ahora
-Las fotos ya NO están en el código: viven en **`fotos.json`**, que el panel
-`/admin` edita por vos. El sitio lee ese archivo y arma la galería sola.
+## ⚙️ Cómo funciona
+- La web lee **`fotos.json`** y arma la galería sola.
+- El panel `/admin` edita `fotos.json` y sube las fotos **directo al repo de
+  GitHub** (un commit por cada "Publicar"). El hosting detecta el cambio y
+  republica en ~1 minuto.
+- Antes de subir, el panel **achica cada foto** (máx. 2000px, JPEG) para que la
+  web cargue rápido aunque Mili suba fotos de 5 MB de la cámara.
+- El acceso al panel es con una llave (token de GitHub con permiso solo sobre
+  este repo). Ver **PUBLICAR.md**.
 
 ## ▶️ Verlo local
-Como ahora usa `fetch`, hay que servirlo (no abrir con doble clic):
+Como usa `fetch`, hay que servirlo (no abrir con doble clic):
 ```bash
 cd wildmilu
 python -m http.server 8000
 ```
-Y entrá a http://localhost:8000
+Y entrá a http://localhost:8000 (el panel en http://localhost:8000/admin/).
 
 ## ➕ Agregar fotos
 - **Milagros:** desde el panel → ver **GUIA-MILAGROS.md**.
-- **A mano (vos):** editás `fotos.json` y hacés `git push`.
+- **A mano (vos):** editás `fotos.json`, copiás la imagen a `images/` y `git push`.
 
 **Categorías:** Jardín · Bosque · Humedales · Rapaces · Pastizal · Otra fauna
+(se cambian en `admin/admin.js`, constante `CATEGORIAS`).
 
 ## 🎨 Personalizar
 Colores/tipografías: `:root` al inicio de `css/styles.css`.

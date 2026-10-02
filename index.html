@@ -11,9 +11,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/styles.css">
-
-  <!-- Login del panel (permite volver a /admin tras iniciar sesión) -->
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
 
@@ -93,17 +90,5 @@
        de la versión 1. Ahora las fotos se leen desde fotos.json. -->
   <script src="js/main.js"></script>
 
-  <!-- Al iniciar sesión desde un mail de invitación, redirige al panel -->
-  <script>
-    if (window.netlifyIdentity) {
-      window.netlifyIdentity.on("init", user => {
-        if (!user) {
-          window.netlifyIdentity.on("login", () => {
-            document.location.href = "/admin/";
-          });
-        }
-      });
-    }
-  </script>
 </body>
 </html>
