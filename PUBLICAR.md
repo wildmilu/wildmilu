@@ -91,3 +91,24 @@ números hay que crear la cuenta **una sola vez**:
 3. Completá email y contraseña → listo.
 4. Las visitas se ven en **https://wildmilu.goatcounter.com**. Podés invitar a
    Mili desde *Settings → Users*.
+
+---
+
+## ⚙️ Publicación automática (GitHub Actions) — activar una vez
+
+Cada cambio en `main` lo publica el proceso `.github/workflows/publicar.yml`,
+que además arma una página por foto (para que al compartirla se vea ESA foto
+en WhatsApp/Instagram) y el `sitemap.xml` para Google.
+
+**Activarlo:** Settings → Pages → Build and deployment → **Source: GitHub Actions**.
+Después: pestaña **Actions** → "Publicar sitio" → **Run workflow** (o esperá al
+próximo cambio). Si algo falla, ahí mismo se ve el error en rojo.
+
+## 🔎 Aparecer en Google (Search Console) — una vez
+
+1. Entrá a https://search.google.com/search-console → **Agregar propiedad**
+   → **Prefijo de URL** → `https://wildmilu.github.io/`.
+2. Verificación: elegí **Etiqueta HTML**. Copiá el código del `content="..."`
+   y agregalo en `index.html` (o pedíselo a Claude), publicá y tocá **Verificar**.
+3. En **Sitemaps** cargá `sitemap.xml` → Enviar.
+4. Google tarda de días a un par de semanas en mostrar el sitio en las búsquedas.

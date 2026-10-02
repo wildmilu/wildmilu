@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="admin.css?v=2">
+  <link rel="stylesheet" href="admin.css?v=3">
 </head>
 <body>
 
@@ -59,10 +59,17 @@
 
       <div class="encabezado">
         <h1>Tus fotos <span id="contador"></span></h1>
-        <button class="btn btn--primario" id="btn-agregar" type="button">+ Agregar foto</button>
+        <div class="encabezado__botones">
+          <label class="btn btn--suave" for="archivos-varios">Agregar varias</label>
+          <input id="archivos-varios" type="file" accept="image/*" multiple hidden>
+          <button class="btn btn--primario" id="btn-agregar" type="button">+ Agregar foto</button>
+        </div>
       </div>
       <p class="ayuda">Los cambios se guardan acá y se ven en la web recién cuando tocás <b>Publicar</b>.</p>
+      <input class="buscar" id="buscar" type="search" placeholder="Buscar por nombre, especie, lugar o clase…" autocomplete="off">
+      <p class="ayuda ayuda--chica" id="ayuda-orden">Arrastrá desde <b>⠿</b> para cambiar el orden.</p>
       <ul class="lista" id="lista"></ul>
+      <p class="ayuda" id="sin-resultados" hidden>No hay fotos que coincidan con la búsqueda.</p>
     </main>
   </div>
 
@@ -135,6 +142,8 @@
 
   <div class="aviso" id="aviso" hidden></div>
 
-  <script src="admin.js?v=4"></script>
+  <!-- Para reordenar arrastrando (funciona con el dedo en el celular) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.7/Sortable.min.js"></script>
+  <script src="admin.js?v=5"></script>
 </body>
 </html>

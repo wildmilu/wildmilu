@@ -307,7 +307,8 @@ function mostrarAviso(texto) {
 
 lbCompartir.addEventListener("click", async () => {
   const foto = fotosVisibles[indiceActual];
-  const url = location.origin + location.pathname + "#foto=" + idFoto(foto);
+  // Página propia de la foto: al compartirla, WhatsApp/Instagram muestran ESA foto
+  const url = location.origin + location.pathname.replace(/[^/]*$/, "") + "foto/" + idFoto(foto) + "/";
   const titulo = `${foto.titulo} · WildMilu`;
   if (navigator.share) {
     try { await navigator.share({ title: titulo, url }); } catch { /* canceló */ }

@@ -63,6 +63,7 @@ async function gh(ruta, { method = "GET", body } = {}) {
   if (!res.ok) {
     const err = new Error(`GitHub respondió ${res.status}`);
     err.status = res.status;
+    err.esperar = Number(res.headers.get("retry-after")) || 0;
     try { err.detalle = (await res.json()).message; } catch {}
     throw err;
   }
@@ -107,8 +108,27 @@ async function cargar() {
   render();
 }
 
+/* GitHub limita cuántos archivos se pueden crear por minuto (~80).
+   Con muchas fotos subimos a un ritmo seguro y, si igual pide esperar, esperamos. */
+const pausa = ms => new Promise(r => setTimeout(r, ms));
+let ultimaSubida = 0;
+async function subirArchivo(base64) {
+  for (let intento = 1; ; intento++) {
+    const espera = ultimaSubida + 900 - Date.now();   // ~65 por minuto
+    if (espera > 0) await pausa(espera);
+    ultimaSubida = Date.now();
+    try {
+      return await gh(`${repo()}/git/blobs`, { method: "POST", body: { content: base64, encoding: "base64" } });
+    } catch (err) {
+      const limite = err.status === 429 || (err.status === 403 && /rate limit/i.test(err.detalle || ""));
+      if (!limite || intento >= 4) throw err;
+      await pausa((err.esperar || 60) * 1000);
+    }
+  }
+}
+
 /* Un solo commit con fotos.json + imágenes nuevas */
-async function publicar() {
+async function publicar(progreso = () => {}) {
   const ref = await gh(`${repo()}/git/ref/heads/${CONFIG.branch}`);
   const cabeza = ref.object.sha;
 
@@ -126,15 +146,17 @@ async function publicar() {
   const arbol = [];
 
   const usadas = new Set([...fotos.map(f => rutaRepo(f.src)), rutaRepo(sitio.sobre.foto)]);
+  const archivos = [];
   for (const [ruta, imagen] of imagenesNuevas) {
     if (!usadas.has(ruta)) continue;  // se agregó y se reemplazó/borró antes de publicar
     // la foto grande (para el visor) y su miniatura (para la grilla)
-    const archivos = [[ruta, imagen.base64]];
+    archivos.push([ruta, imagen.base64]);
     if (imagen.miniatura) archivos.push([rutaMiniatura(ruta), imagen.miniatura]);
-    for (const [destino, base64] of archivos) {
-      const blob = await gh(`${repo()}/git/blobs`, { method: "POST", body: { content: base64, encoding: "base64" } });
-      arbol.push({ path: destino, mode: "100644", type: "blob", sha: blob.sha });
-    }
+  }
+  for (const [n, [destino, base64]] of archivos.entries()) {
+    progreso(n + 1, archivos.length);
+    const blob = await subirArchivo(base64);
+    arbol.push({ path: destino, mode: "100644", type: "blob", sha: blob.sha });
   }
 
   // Las imágenes de fotos borradas NO se eliminan del repo: alguna puede
@@ -235,8 +257,8 @@ function slug(texto) {
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "foto";
 }
 
-function rutaNueva(titulo) {
-  const existentes = new Set([...fotos.map(f => rutaRepo(f.src)), ...imagenesNuevas.keys()]);
+function rutaNueva(titulo, reservadas = []) {
+  const existentes = new Set([...fotos.map(f => rutaRepo(f.src)), ...imagenesNuevas.keys(), ...reservadas]);
   const base = `${CONFIG.carpetaImagenes}/${slug(titulo)}`;
   let ruta = `${base}.jpg`, n = 2;
   while (existentes.has(ruta)) ruta = `${base}-${n++}.jpg`;
@@ -246,13 +268,13 @@ function rutaNueva(titulo) {
 /* =====================================================================
    Interfaz
    ===================================================================== */
-function aviso(texto, esError = false) {
+function aviso(texto, esError = false, fijo = false) {
   const el = $("aviso");
   el.textContent = texto;
   el.classList.toggle("error-aviso", esError);
   el.hidden = false;
   clearTimeout(aviso.t);
-  aviso.t = setTimeout(() => (el.hidden = true), esError ? 7000 : 4000);
+  if (!fijo) aviso.t = setTimeout(() => (el.hidden = true), esError ? 8000 : 5000);
 }
 
 function boton(texto, titulo, clase, accion) {
@@ -266,15 +288,37 @@ function boton(texto, titulo, clase, accion) {
   return b;
 }
 
+function sinAcentos(t) {
+  return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 function render() {
   renderSobre();
   const lista = $("lista");
   lista.innerHTML = "";
   $("contador").textContent = `(${fotos.length})`;
 
+  const busqueda = sinAcentos($("buscar").value.trim());
+  const buscando = busqueda.length > 0;
+  lista.classList.toggle("buscando", buscando);
+  $("ayuda-orden").hidden = buscando || fotos.length < 2;
+  if (ordenable) ordenable.option("disabled", buscando);   // con búsqueda activa no se reordena
+  let visibles = 0;
+
   fotos.forEach((foto, i) => {
+    if (buscando) {
+      const textoFoto = sinAcentos([foto.titulo, foto.especie, foto.lugar, foto.categoria, foto.fecha].join(" "));
+      if (!textoFoto.includes(busqueda)) return;
+    }
+    visibles++;
     const li = document.createElement("li");
     li.className = "item";
+
+    const asa = document.createElement("span");
+    asa.className = "item__asa";
+    asa.textContent = "⠿";
+    asa.title = "Arrastrá para cambiar el orden";
+    asa.setAttribute("aria-hidden", "true");
 
     const img = document.createElement("img");
     img.src = urlMiniatura(foto.src);
@@ -296,6 +340,13 @@ function render() {
     const meta = document.createElement("div");
     meta.className = "item__meta";
     meta.textContent = [foto.categoria, foto.especie].filter(Boolean).join(" · ");
+    const faltan = [!foto.titulo && "título", !foto.lugar && "lugar", !foto.fecha && "fecha"].filter(Boolean);
+    if (faltan.length) {
+      const falta = document.createElement("span");
+      falta.className = "falta";
+      falta.textContent = `· falta ${faltan.join(", ").replace(/, ([^,]*)$/, " y $1")}`;
+      meta.appendChild(falta);
+    }
     texto.append(titulo, meta);
 
     const acciones = document.createElement("div");
@@ -310,9 +361,10 @@ function render() {
       boton("Borrar", "Borrar", "btn--peligro", () => borrar(i)),
     );
 
-    li.append(img, texto, acciones);
+    li.append(asa, img, texto, acciones);
     lista.appendChild(li);
   });
+  $("sin-resultados").hidden = !buscando || visibles > 0;
 
   $("pendientes").hidden = cambios.length === 0;
   $("pendientes-texto").textContent = cambios.length === 1
@@ -428,6 +480,64 @@ function guardarFormulario(e) {
   render();
 }
 
+/* ---------- Reordenar arrastrando (SortableJS) ---------- */
+let ordenable = null;
+if (window.Sortable) {
+  ordenable = Sortable.create($("lista"), {
+    handle: ".item__asa",
+    animation: 150,
+    ghostClass: "item--fantasma",
+    chosenClass: "item--arrastrando",
+    scroll: true,
+    bubbleScroll: true,
+    onEnd: ({ oldIndex, newIndex }) => {
+      if (oldIndex === newIndex) return;
+      const [foto] = fotos.splice(oldIndex, 1);
+      fotos.splice(newIndex, 0, foto);
+      cambios.push(`Reordenar "${foto.titulo || "foto"}"`);
+      render();
+    },
+  });
+}
+
+/* ---------- Agregar varias fotos de una vez ---------- */
+// Nombres automáticos de cámaras y celulares: no sirven como título
+const NOMBRES_AUTOMATICOS = /^(img|dsc|dscn|dscf|dcim|pxl|mvimg|photo|image|imagen|foto|captura|screenshot|whatsapp|wa|edit|edited|copia|copy|final)$/i;
+
+function tituloDesdeArchivo(nombre) {
+  const palabras = nombre.replace(/\.[^.]+$/, "").split(/[-_\s.]+/)
+    .filter(p => p && !/\d/.test(p) && !NOMBRES_AUTOMATICOS.test(p));
+  const t = palabras.join(" ");
+  return /[a-záéíóúñ]{3,}/i.test(t) ? t.charAt(0).toUpperCase() + t.slice(1) : "";  // "IMG_1234" → sin título
+}
+
+async function agregarVarias() {
+  const elegidos = [...$("archivos-varios").files];
+  $("archivos-varios").value = "";
+  if (!elegidos.length) return;
+  const nuevas = [], fallaron = [];
+  for (const [n, archivo] of elegidos.entries()) {
+    aviso(`Preparando ${n + 1} de ${elegidos.length}…`, false, true);
+    try {
+      const imagen = await procesarImagen(archivo);
+      const titulo = tituloDesdeArchivo(archivo.name);
+      const ruta = rutaNueva(titulo || archivo.name.replace(/\.[^.]+$/, ""), nuevas.map(f => f.src));
+      imagenesNuevas.set(ruta, { base64: imagen.base64, miniatura: imagen.miniatura });
+      vistasPrevias.set(ruta, imagen.url);
+      nuevas.push({ src: ruta, titulo, especie: "", categoria: "Aves", lugar: "", fecha: "", descripcion: "",
+                    ancho: imagen.ancho, alto: imagen.alto });
+      cambios.push(`Agregar foto "${titulo || archivo.name}"`);
+    } catch {
+      fallaron.push(archivo.name);
+    }
+  }
+  fotos.unshift(...nuevas);   // quedan primeras, en el orden en que se eligieron
+  render();
+  aviso(fallaron.length
+    ? `Se agregaron ${nuevas.length}. No se pudieron leer: ${fallaron.join(", ")} (probá con JPG o PNG).`
+    : `Se agregaron ${nuevas.length} fotos. Completá sus datos con "Editar" y después tocá Publicar.`, fallaron.length > 0);
+}
+
 /* ---------- Editor de "Sobre Milagros" ---------- */
 let perfilElegido = null;     // foto nueva elegida en el editor (procesada)
 
@@ -529,6 +639,8 @@ $("btn-salir").addEventListener("click", () => {
 });
 
 $("btn-agregar").addEventListener("click", () => abrirFormulario());
+$("archivos-varios").addEventListener("change", agregarVarias);
+$("buscar").addEventListener("input", render);
 $("btn-editar-sobre").addEventListener("click", abrirSobre);
 $("btn-cancelar-sobre").addEventListener("click", () => $("dialogo-sobre").close());
 $("perfil-archivo").addEventListener("change", alElegirPerfil);
@@ -551,7 +663,10 @@ $("btn-publicar").addEventListener("click", async () => {
   btn.disabled = true;
   btn.textContent = "Publicando…";
   try {
-    await publicar();
+    await publicar((n, total) => {
+      btn.textContent = `Subiendo ${n} de ${total}…`;
+      if (total > 10) aviso(`Subiendo fotos: ${n} de ${total}. No cierres esta página.`, false, true);
+    });
     aviso("¡Publicado! 🎉 En 1-2 minutos se ve en la web.");
   } catch (err) {
     aviso(mensajeError(err), true);

@@ -1,0 +1,40 @@
+# WildMilu · Publica el sitio en GitHub Pages en cada cambio de "main"
+# (tuyo o del panel de Mili). Antes de publicar genera la página de cada
+# foto (vista previa al compartir) y el sitemap para Google.
+name: Publicar sitio
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:      # botón "Run workflow" para publicar a mano
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  armar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generar páginas de fotos y sitemap
+        run: python3 scripts/generar.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  publicar:
+    needs: armar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

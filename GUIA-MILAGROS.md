@@ -33,6 +33,25 @@ y no necesitás saber nada de programación.
 
 ---
 
+## 📚 Agregar muchas fotos de una vez (ej: las de Instagram)
+
+1. Tocá **"Agregar varias"** y elegí todas las fotos juntas.
+2. Aparecen arriba de la lista con la etiqueta *nueva*. Si el nombre del archivo
+   era algo como *IMG_1234*, quedan **sin título**.
+3. Cada foto muestra en naranja lo que le falta (título, lugar, fecha):
+   tocá **Editar** en cada una y completalo.
+4. **Publicar.** Con muchas fotos tarda un poco (≈1 segundo por foto): vas a ver
+   el progreso; **no cierres la página** hasta que diga "¡Publicado!".
+
+> 💡 Usá las fotos **originales** de tu compu o celu, no las bajadas de Instagram:
+> Instagram las achica y les baja la calidad.
+> 💡 Si son muchas, publicá en tandas de 15-20: es más cómodo y si se corta
+> internet no perdés todo.
+
+## 🔍 Buscar una foto
+Arriba de la lista hay un buscador: escribí parte del nombre, la especie,
+el lugar o la clase (no importan los acentos).
+
 ## ✏️ Editar una foto
 Tocá **Editar**, cambiá lo que quieras (también podés cambiar la imagen) →
 **Guardar** → **Publicar**.
@@ -50,7 +69,8 @@ En la web, abrí la foto y tocá **Compartir**: se abre el menú del celu para
 mandarla por WhatsApp, Instagram, etc. Quien abra el link ve directo esa foto.
 
 ## 🔀 Cambiar el orden
-Con las flechitas **↑ ↓** de cada foto → **Publicar**.
+Mantené apretado el **⠿** de la izquierda de una foto y arrastrala a su lugar
+(o usá las flechitas **↑ ↓**) → **Publicar**.
 
 ## 🗑️ Borrar una foto
 **Borrar** → confirmar → **Publicar**.
