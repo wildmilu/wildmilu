@@ -171,9 +171,9 @@ lightbox.addEventListener("touchmove", e => {
   if (toqueX === null || e.touches.length > 1) return;
   const dx = e.touches[0].clientX - toqueX;
   const dy = e.touches[0].clientY - toqueY;
+  if (e.cancelable) e.preventDefault();       // que Safari no scrollee la página de atrás
   if (!direccion && Math.hypot(dx, dy) > 10) direccion = Math.abs(dy) > Math.abs(dx) ? "vertical" : "horizontal";
   if (direccion === "vertical") {
-    e.preventDefault();                       // que no se mueva la página de atrás
     bajada = Math.max(0, dy);                 // solo hacia abajo
     moverVisor(bajada, false);
   }
@@ -196,6 +196,12 @@ lightbox.addEventListener("touchend", e => {
   }
   direccion = null;
 }, { passive: true });
+
+// Si el sistema interrumpe el gesto (llamada, notificación...), la foto vuelve a su lugar
+lightbox.addEventListener("touchcancel", () => {
+  toqueX = toqueY = direccion = null;
+  moverVisor(0, true);
+});
 
 document.addEventListener("keydown", e => {
   if (!lightbox.classList.contains("abierto")) return;

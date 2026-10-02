@@ -173,6 +173,9 @@ img { display: block; max-width: 100%; }
   background: #14120f; padding: 2rem 5rem;
 }
 .lightbox.abierto { display: flex; }
+/* Los gestos dentro del visor los maneja main.js: así Safari (iOS) no
+   scrollea la página de atrás ni "se queda" con el arrastre */
+.lightbox { touch-action: none; overscroll-behavior: contain; }
 .lightbox__contenido {
   max-width: 1000px; width: 100%; display: grid;
   grid-template-columns: 1fr; gap: 1rem; text-align: center;
