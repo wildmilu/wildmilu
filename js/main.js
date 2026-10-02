@@ -137,6 +137,21 @@ document.getElementById("lb-cerrar").addEventListener("click", cerrarLightbox);
 document.getElementById("lb-prev").addEventListener("click", () => cambiar(-1));
 document.getElementById("lb-next").addEventListener("click", () => cambiar(1));
 lightbox.addEventListener("click", e => { if (e.target === lightbox) cerrarLightbox(); });
+
+/* Deslizar con el dedo en el celular: izquierda/derecha cambia de foto */
+let toqueX = null, toqueY = null;
+lightbox.addEventListener("touchstart", e => {
+  toqueX = e.touches[0].clientX;
+  toqueY = e.touches[0].clientY;
+}, { passive: true });
+lightbox.addEventListener("touchend", e => {
+  if (toqueX === null) return;
+  const dx = e.changedTouches[0].clientX - toqueX;
+  const dy = e.changedTouches[0].clientY - toqueY;
+  toqueX = toqueY = null;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) cambiar(dx < 0 ? 1 : -1);
+}, { passive: true });
+
 document.addEventListener("keydown", e => {
   if (!lightbox.classList.contains("abierto")) return;
   if (e.key === "Escape")     cerrarLightbox();

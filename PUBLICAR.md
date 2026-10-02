@@ -77,3 +77,17 @@ No hay que tocar código (el sitio usa rutas relativas).
 Cuando el sitio nuevo ande (y probaste el panel), en https://app.netlify.com:
 **Site configuration → Delete this site**. Si tenías dominio apuntando a
 Netlify, cambiá los DNS antes.
+
+---
+
+## 📊 Estadísticas de visitas (GoatCounter)
+
+El sitio ya trae el código de GoatCounter (gratis, sin cookies). Para ver los
+números hay que crear la cuenta **una sola vez**:
+
+1. Entrá a https://www.goatcounter.com/signup
+2. **Code:** `wildmilu` (tiene que ser exactamente ese: el sitio manda las
+   visitas a `wildmilu.goatcounter.com`).
+3. Completá email y contraseña → listo.
+4. Las visitas se ven en **https://wildmilu.goatcounter.com**. Podés invitar a
+   Mili desde *Settings → Users*.
