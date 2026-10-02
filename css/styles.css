@@ -169,7 +169,7 @@ img { display: block; max-width: 100%; }
   grid-template-columns: 1fr 1.3fr; gap: 3rem; align-items: center;
 }
 @media (max-width: 700px) { .sobre__grid { grid-template-columns: 1fr; } }
-.sobre__foto { border-radius: var(--radio); box-shadow: var(--sombra); aspect-ratio: 1; object-fit: cover; }
+.sobre__foto { border-radius: var(--radio); box-shadow: var(--sombra); aspect-ratio: 3 / 4; object-fit: cover; object-position: 70% center; }
 .sobre__texto h2 { font-family: var(--fuente-titulo); font-size: 2.2rem; color: var(--verde-bosque); margin-bottom: 1rem; }
 .sobre__texto p { margin-bottom: 1rem; color: #4a453c; }
 
