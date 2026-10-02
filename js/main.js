@@ -102,6 +102,7 @@ const lbImg     = document.getElementById("lb-img");
 const lbTitulo  = document.getElementById("lb-titulo");
 const lbEspecie = document.getElementById("lb-especie");
 const lbDetalle = document.getElementById("lb-detalle");
+const lbContador = document.getElementById("lb-contador");
 let indiceActual = 0;
 
 function abrirLightbox(indice) {
@@ -120,6 +121,7 @@ function mostrarFoto() {
   lbEspecie.textContent = foto.especie || "";
   const partes = [foto.lugar, foto.fecha].filter(Boolean).join(" · ");
   lbDetalle.textContent = [partes, foto.descripcion].filter(Boolean).join(" — ");
+  lbContador.textContent = `${indiceActual + 1} / ${fotosVisibles.length}`;
 }
 
 function cerrarLightbox() {
@@ -158,3 +160,17 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft")  cambiar(-1);
   if (e.key === "ArrowRight") cambiar(1);
 });
+
+/* ---------- 5. Menú del celular ---------- */
+const navMenu  = document.getElementById("nav-menu");
+const navLinks = document.getElementById("nav-links");
+
+function menuAbierto(abierto) {
+  navLinks.classList.toggle("abierto", abierto);
+  navMenu.classList.toggle("abierto", abierto);
+  navMenu.setAttribute("aria-expanded", abierto);
+  navMenu.setAttribute("aria-label", abierto ? "Cerrar menú" : "Abrir menú");
+}
+navMenu.addEventListener("click", () => menuAbierto(!navLinks.classList.contains("abierto")));
+navLinks.addEventListener("click", e => { if (e.target.closest("a")) menuAbierto(false); });
+document.addEventListener("click", e => { if (!e.target.closest(".nav")) menuAbierto(false); });
