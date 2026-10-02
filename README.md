@@ -9,6 +9,7 @@ Sin servidores ni servicios pagos: se aloja gratis en GitHub Pages
 wildmilu/
 ├── index.html          → la página principal
 ├── fotos.json          → 👈 los datos de las fotos (los edita el panel)
+├── sitio.json          → texto y foto de "Sobre Milagros" (también desde el panel)
 ├── css/styles.css      → estilos (colores/tipografías en :root)
 ├── js/main.js          → lógica: lee fotos.json y arma la galería
 ├── images/             → las fotos (las grandes, para el visor)

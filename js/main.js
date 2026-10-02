@@ -1,8 +1,9 @@
 /* =====================================================================
-   WildMilu · LÓGICA DE LA GALERÍA
+   WildMilu · LÓGICA DEL SITIO
    ---------------------------------------------------------------------
-   Las fotos viven en  fotos.json  (lo edita el panel /admin).
-   Este archivo lee ese JSON y arma la galería, los filtros y el visor.
+   Las fotos viven en  fotos.json  y el texto de "Sobre Milagros" en
+   sitio.json (los dos los edita el panel /admin). Este archivo los lee
+   y arma la galería, los filtros y el visor.
    No hace falta tocarlo para agregar fotos.
    ===================================================================== */
 
@@ -16,11 +17,10 @@ let FOTOS = [];
 let fotosVisibles = [];
 
 /* ---------------------------------------------------------------------
-   Normaliza la ruta de una imagen.
-   Tolera "images/x.jpg", "/images/x.jpg" o una URL completa.
-   Las rutas quedan relativas para que el sitio funcione igual en un
-   dominio propio o en una subcarpeta (ej: usuario.github.io/wildmilu/).
+   Rutas de imágenes
    --------------------------------------------------------------------- */
+// Tolera "images/x.jpg", "/images/x.jpg" o una URL completa. Las rutas quedan
+// relativas para que el sitio funcione en un dominio propio o en una subcarpeta.
 function normalizarRuta(src) {
   if (!src) return "";
   const s = String(src).trim();
@@ -28,21 +28,29 @@ function normalizarRuta(src) {
   return s.replace(/^\/+/, "");             // "/images/x.jpg" → "images/x.jpg"
 }
 
-/* Miniatura liviana para la grilla: images/x.jpg → images/thumbs/x.jpg
-   (el panel la genera al subir cada foto; si falta, se usa la grande) */
+// Miniatura liviana para la grilla: images/x.jpg → images/thumbs/x.jpg
+// (el panel la genera al subir cada foto; si falta, se usa la grande)
 function rutaMiniatura(src) {
   const ruta = normalizarRuta(src);
   return ruta.startsWith("images/") ? ruta.replace("images/", "images/thumbs/") : ruta;
 }
 
-/* ---------- 0. Cargar los datos desde fotos.json ---------- */
-fetch("fotos.json?" + Date.now())          // el ?... evita caché vieja
+// Identificador de cada foto para su link propio: images/benteveo.jpg → "benteveo"
+function idFoto(foto) {
+  return normalizarRuta(foto.src).split("/").pop().replace(/\.[^.]+$/, "");
+}
+
+/* ---------- 0. Cargar los datos ---------- */
+const sinCache = "?" + Date.now();   // evita leer una versión vieja
+
+fetch("fotos.json" + sinCache)
   .then(r => r.json())
   .then(data => {
     FOTOS = (data.fotos || []).filter(f => f && f.src);  // ignora entradas vacías
     fotosVisibles = [...FOTOS];
     construirFiltros();
-    renderizar(FOTOS);
+    renderizar();
+    abrirDesdeLink();   // si entraron con un link a una foto puntual
   })
   .catch(err => {
     console.error("No se pudo cargar fotos.json:", err);
@@ -51,7 +59,25 @@ fetch("fotos.json?" + Date.now())          // el ?... evita caché vieja
       "Si estás abriendo el sitio localmente, usá un servidor (ver README).</p>";
   });
 
-/* ---------- 1. Construir botones de filtro dinámicamente ---------- */
+// "Sobre Milagros": si sitio.json no está, queda el texto que trae index.html
+fetch("sitio.json" + sinCache)
+  .then(r => (r.ok ? r.json() : null))
+  .then(sitio => {
+    const sobre = sitio && sitio.sobre;
+    if (!sobre) return;
+    if (sobre.foto) document.getElementById("sobre-foto").src = normalizarRuta(sobre.foto);
+    if (sobre.texto) {
+      const cont = document.getElementById("sobre-parrafos");
+      cont.replaceChildren(...sobre.texto.split(/\n\s*\n/).map(t => t.trim()).filter(Boolean).map(t => {
+        const p = document.createElement("p");
+        p.textContent = t;
+        return p;
+      }));
+    }
+  })
+  .catch(() => {});
+
+/* ---------- 1. Filtros ---------- */
 function construirFiltros() {
   filtrosEl.innerHTML = "";
   const presentes = new Set(FOTOS.map(f => f.categoria).filter(Boolean));
@@ -60,72 +86,177 @@ function construirFiltros() {
     ...[...presentes].filter(c => !CLASES.includes(c))];   // por si aparece alguna otra
   categorias.forEach((cat, i) => {
     const btn = document.createElement("button");
+    btn.type = "button";
     btn.className = "filtro" + (i === 0 ? " activo" : "");
     btn.textContent = cat;
+    btn.setAttribute("aria-pressed", i === 0);
     btn.addEventListener("click", () => {
-      document.querySelectorAll(".filtro").forEach(b => b.classList.remove("activo"));
+      document.querySelectorAll(".filtro").forEach(b => {
+        b.classList.remove("activo");
+        b.setAttribute("aria-pressed", false);
+      });
       btn.classList.add("activo");
+      btn.setAttribute("aria-pressed", true);
       filtrar(cat);
     });
     filtrosEl.appendChild(btn);
   });
 }
 
-/* ---------- 2. Filtrar por categoría ---------- */
 function filtrar(cat) {
   fotosVisibles = cat === "Todas" ? [...FOTOS] : FOTOS.filter(f => f.categoria === cat);
-  renderizar(fotosVisibles);
+  renderizar();
 }
 
-/* ---------- 3. Renderizar las tarjetas ---------- */
-function renderizar(lista) {
-  galeria.innerHTML = "";
-  lista.forEach((foto, indice) => {
-    const card = document.createElement("div");
-    card.className = "card";
+/* ---------- 2. Galería ---------- */
+/* Grilla tipo "masonry" ordenada de izquierda a derecha: cada foto va a la
+   columna más corta. Como fotos.json trae el ancho y alto de cada foto, el
+   lugar queda reservado desde el principio y nada salta mientras carga. */
+function cantidadColumnas() {
+  if (window.innerWidth <= 560) return 1;
+  if (window.innerWidth <= 900) return 2;
+  return 3;
+}
 
-    const img = document.createElement("img");
-    img.src = rutaMiniatura(foto.src);
-    img.alt = foto.titulo || "Foto de WildMilu";
-    img.loading = indice < 4 ? "eager" : "lazy";   // las primeras, sin esperar
-    img.decoding = "async";
+function proporcion(foto) {               // alto / ancho
+  return foto.ancho && foto.alto ? foto.alto / foto.ancho : 0.75;
+}
 
-    // Si falta la miniatura se usa la foto grande; si tampoco está
-    // (ruta mal escrita, archivo borrado) se oculta la tarjeta.
-    img.addEventListener("error", () => {
-      const grande = normalizarRuta(foto.src);
-      if (!img.src.endsWith(grande)) { img.src = grande; return; }
-      console.warn("No se encontró la imagen:", grande);
-      card.style.display = "none";
-    });
+function crearTarjeta(foto, indice) {
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "card";
+  card.setAttribute("aria-label", `Ver foto: ${foto.titulo || "sin título"}`);
 
-    const info = document.createElement("div");
-    info.className = "card__info";
-    info.innerHTML = `
-      <div class="card__titulo">${foto.titulo || ""}</div>
-      <div class="card__especie">${foto.especie || ""}</div>`;
+  const img = document.createElement("img");
+  img.src = rutaMiniatura(foto.src);
+  img.alt = "";                           // el nombre ya lo dice la tarjeta
+  img.loading = indice < 6 ? "eager" : "lazy";
+  img.decoding = "async";
+  if (foto.ancho && foto.alto) { img.width = foto.ancho; img.height = foto.alto; }
+  img.style.aspectRatio = `1 / ${proporcion(foto)}`;
 
-    card.appendChild(img);
-    card.appendChild(info);
-    card.addEventListener("click", () => abrirLightbox(indice));
-    galeria.appendChild(card);
+  // Si falta la miniatura se usa la foto grande; si tampoco está
+  // (ruta mal escrita, archivo borrado) se oculta la tarjeta.
+  img.addEventListener("error", () => {
+    const grande = normalizarRuta(foto.src);
+    if (!img.src.endsWith(grande)) { img.src = grande; return; }
+    console.warn("No se encontró la imagen:", grande);
+    card.hidden = true;
   });
+
+  const info = document.createElement("span");
+  info.className = "card__info";
+  const titulo = document.createElement("span");
+  titulo.className = "card__titulo";
+  titulo.textContent = foto.titulo || "";
+  const especie = document.createElement("span");
+  especie.className = "card__especie";
+  especie.textContent = foto.especie || "";
+  info.append(titulo, especie);
+
+  card.append(img, info);
+  card.addEventListener("click", () => abrirLightbox(indice));
+  return card;
 }
 
-/* ---------- 4. Lightbox (visor ampliado) ---------- */
-const lightbox  = document.getElementById("lightbox");
-const lbImg     = document.getElementById("lb-img");
-const lbTitulo  = document.getElementById("lb-titulo");
-const lbEspecie = document.getElementById("lb-especie");
-const lbDetalle = document.getElementById("lb-detalle");
-const lbContador = document.getElementById("lb-contador");
-let indiceActual = 0;
+let columnasActuales = 0;
+function renderizar() {
+  const n = cantidadColumnas();
+  columnasActuales = n;
+  const columnas = Array.from({ length: n }, () => {
+    const col = document.createElement("div");
+    col.className = "galeria__col";
+    return col;
+  });
+  const altura = new Array(n).fill(0);
+  fotosVisibles.forEach((foto, i) => {
+    let c = 0;                            // columna más corta (a igual altura, la de la izquierda)
+    for (let k = 1; k < n; k++) if (altura[k] < altura[c] - 0.01) c = k;
+    columnas[c].appendChild(crearTarjeta(foto, i));
+    altura[c] += proporcion(foto) + 0.08;  // + el espacio entre tarjetas
+  });
+  galeria.replaceChildren(...columnas);
+}
 
-function abrirLightbox(indice) {
+// Al girar el celular o cambiar el tamaño de la ventana, reacomodar si cambia la cantidad de columnas
+let esperaResize;
+window.addEventListener("resize", () => {
+  clearTimeout(esperaResize);
+  esperaResize = setTimeout(() => { if (cantidadColumnas() !== columnasActuales) renderizar(); }, 150);
+});
+
+/* ---------- 3. Visor (lightbox) ---------- */
+const lightbox    = document.getElementById("lightbox");
+const lbImg       = document.getElementById("lb-img");
+const lbTitulo    = document.getElementById("lb-titulo");
+const lbEspecie   = document.getElementById("lb-especie");
+const lbDetalle   = document.getElementById("lb-detalle");
+const lbContador  = document.getElementById("lb-contador");
+const lbCerrar    = document.getElementById("lb-cerrar");
+const lbCompartir = document.getElementById("lb-compartir");
+const lbContenido = document.querySelector(".lightbox__contenido");
+let indiceActual = 0;
+let focoAnterior = null;      // para devolver el foco a la tarjeta al cerrar (teclado)
+let entradaPropia = false;    // true si el visor agregó una entrada al historial
+
+const visorAbierto = () => lightbox.classList.contains("abierto");
+
+// ¿Se está usando el teclado? El foco solo se mueve en ese caso, así con el
+// dedo o el mouse no aparecen recuadros de foco.
+let usandoTeclado = false;
+document.addEventListener("keydown", e => { if (e.key === "Tab" || e.key === "Enter" || e.key === " ") usandoTeclado = true; });
+document.addEventListener("pointerdown", () => { usandoTeclado = false; });
+
+function abrirLightbox(indice, { desdeLink = false } = {}) {
   indiceActual = indice;
+  focoAnterior = document.activeElement;
   mostrarFoto();
   lightbox.classList.add("abierto");
   document.body.style.overflow = "hidden";
+  // Link propio de la foto (#foto=benteveo). Se agrega al historial para que
+  // el botón "atrás" del celular cierre el visor en vez de salir del sitio.
+  if (!desdeLink) {
+    history.pushState({ visor: true }, "", "#foto=" + idFoto(fotosVisibles[indice]));
+    entradaPropia = true;
+  }
+  if (usandoTeclado) lbCerrar.focus({ preventScroll: true });
+}
+
+function ocultarLightbox() {
+  lightbox.classList.remove("abierto");
+  document.body.style.overflow = "";
+  if (usandoTeclado && focoAnterior && document.contains(focoAnterior)) focoAnterior.focus({ preventScroll: true });
+}
+
+function cerrarLightbox() {
+  if (!visorAbierto()) return;
+  ocultarLightbox();
+  if (entradaPropia) {
+    entradaPropia = false;
+    history.back();             // saca del historial la entrada que agregó el visor
+  } else {                      // entraron directo con el link: se limpia la dirección
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+}
+
+window.addEventListener("popstate", () => {
+  const id = idDesdeDireccion();
+  if (!id && visorAbierto()) { entradaPropia = false; ocultarLightbox(); }
+  else if (id && !visorAbierto()) abrirDesdeLink();
+});
+
+function idDesdeDireccion() {
+  const m = location.hash.match(/^#foto=([^&]+)/);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+function abrirDesdeLink() {
+  const id = idDesdeDireccion();
+  if (!id || !FOTOS.length) return;
+  const i = fotosVisibles.findIndex(f => idFoto(f) === id);
+  if (i >= 0) abrirLightbox(i, { desdeLink: true });
+  else history.replaceState(null, "", location.pathname + location.search);  // link viejo: foto borrada
 }
 
 function mostrarFoto() {
@@ -138,12 +269,13 @@ function mostrarFoto() {
   completa.onload = () => { if (fotosVisibles[indiceActual] === foto) lbImg.src = grande; };
   completa.src = grande;
   lbImg.src = completa.complete ? grande : rutaMiniatura(foto.src);
-  lbImg.alt = foto.titulo || "";
+  lbImg.alt = [foto.titulo, foto.especie].filter(Boolean).join(" — ");
   lbTitulo.textContent  = foto.titulo || "";
   lbEspecie.textContent = foto.especie || "";
   const partes = [foto.lugar, foto.fecha].filter(Boolean).join(" · ");
   lbDetalle.textContent = [partes, foto.descripcion].filter(Boolean).join(" — ");
   lbContador.textContent = `${indiceActual + 1} / ${fotosVisibles.length}`;
+  if (visorAbierto()) history.replaceState(history.state, "", "#foto=" + idFoto(foto));
   precargarVecinas();
 }
 
@@ -158,27 +290,61 @@ function precargarVecinas() {
   });
 }
 
-function cerrarLightbox() {
-  lightbox.classList.remove("abierto");
-  document.body.style.overflow = "";
-}
-
 function cambiar(dir) {
   indiceActual = (indiceActual + dir + fotosVisibles.length) % fotosVisibles.length;
   mostrarFoto();
 }
 
-/* Eventos del lightbox */
-document.getElementById("lb-cerrar").addEventListener("click", cerrarLightbox);
+/* Compartir: en el celular abre el menú de compartir (WhatsApp, etc.);
+   en la compu copia el link */
+const aviso = document.getElementById("aviso");
+function mostrarAviso(texto) {
+  aviso.textContent = texto;
+  aviso.classList.add("visible");
+  clearTimeout(mostrarAviso.t);
+  mostrarAviso.t = setTimeout(() => aviso.classList.remove("visible"), 2200);
+}
+
+lbCompartir.addEventListener("click", async () => {
+  const foto = fotosVisibles[indiceActual];
+  const url = location.origin + location.pathname + "#foto=" + idFoto(foto);
+  const titulo = `${foto.titulo} · WildMilu`;
+  if (navigator.share) {
+    try { await navigator.share({ title: titulo, url }); } catch { /* canceló */ }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    mostrarAviso("Link copiado ✓");
+  } catch {
+    prompt("Copiá este link:", url);
+  }
+});
+
+/* Eventos del visor */
+lbCerrar.addEventListener("click", cerrarLightbox);
 document.getElementById("lb-prev").addEventListener("click", () => cambiar(-1));
 document.getElementById("lb-next").addEventListener("click", () => cambiar(1));
 lightbox.addEventListener("click", e => { if (e.target === lightbox) cerrarLightbox(); });
 
+document.addEventListener("keydown", e => {
+  if (!visorAbierto()) return;
+  if (e.key === "Escape")     cerrarLightbox();
+  if (e.key === "ArrowLeft")  cambiar(-1);
+  if (e.key === "ArrowRight") cambiar(1);
+  // Con Tab, el foco queda dentro del visor (no se va a la página de atrás)
+  if (e.key === "Tab") {
+    const enfocables = [...lightbox.querySelectorAll("button")].filter(b => b.offsetParent !== null);
+    const primero = enfocables[0], ultimo = enfocables[enfocables.length - 1];
+    if (e.shiftKey && document.activeElement === primero) { e.preventDefault(); ultimo.focus(); }
+    else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
+    else if (!lightbox.contains(document.activeElement)) { e.preventDefault(); primero.focus(); }
+  }
+});
+
 /* Gestos en el celular:
    - izquierda/derecha → cambia de foto
    - hacia abajo → la foto sigue al dedo y, al soltar, se cierra el visor */
-const lbContenido = document.querySelector(".lightbox__contenido");
-const lbCerrar    = document.getElementById("lb-cerrar");
 let toqueX = null, toqueY = null, direccion = null, bajada = 0;
 
 function moverVisor(dy, animado) {
@@ -195,6 +361,7 @@ function moverVisor(dy, animado) {
 
 lightbox.addEventListener("touchstart", e => {
   if (e.touches.length > 1) return;          // pellizco para hacer zoom: no tocar
+  if (e.target.closest("button")) return;    // tocar un botón (ej. Compartir) no es un gesto
   toqueX = e.touches[0].clientX;
   toqueY = e.touches[0].clientY;
   direccion = null;
@@ -237,14 +404,7 @@ lightbox.addEventListener("touchcancel", () => {
   moverVisor(0, true);
 });
 
-document.addEventListener("keydown", e => {
-  if (!lightbox.classList.contains("abierto")) return;
-  if (e.key === "Escape")     cerrarLightbox();
-  if (e.key === "ArrowLeft")  cambiar(-1);
-  if (e.key === "ArrowRight") cambiar(1);
-});
-
-/* ---------- 5. Menú del celular ---------- */
+/* ---------- 4. Menú del celular ---------- */
 const navMenu  = document.getElementById("nav-menu");
 const navLinks = document.getElementById("nav-links");
 
@@ -257,3 +417,6 @@ function menuAbierto(abierto) {
 navMenu.addEventListener("click", () => menuAbierto(!navLinks.classList.contains("abierto")));
 navLinks.addEventListener("click", e => { if (e.target.closest("a")) menuAbierto(false); });
 document.addEventListener("click", e => { if (!e.target.closest(".nav")) menuAbierto(false); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && navLinks.classList.contains("abierto")) { menuAbierto(false); navMenu.focus(); }
+});

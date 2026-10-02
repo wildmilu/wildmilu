@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin.css?v=2">
 </head>
 <body>
 
@@ -48,6 +48,15 @@
     </div>
 
     <main class="contenido">
+      <section class="sobre-panel">
+        <img id="sobre-miniatura" alt="">
+        <div class="sobre-panel__texto">
+          <h2>Sobre Milagros</h2>
+          <p id="sobre-resumen"></p>
+        </div>
+        <button class="btn btn--suave" id="btn-editar-sobre" type="button">Editar</button>
+      </section>
+
       <div class="encabezado">
         <h1>Tus fotos <span id="contador"></span></h1>
         <button class="btn btn--primario" id="btn-agregar" type="button">+ Agregar foto</button>
@@ -101,8 +110,31 @@
     </form>
   </dialog>
 
+  <!-- ===================== EDITOR "SOBRE MILAGROS" ===================== -->
+  <dialog id="dialogo-sobre">
+    <form id="form-sobre" method="dialog">
+      <h2>Sobre Milagros</h2>
+
+      <div class="campo-imagen">
+        <img id="perfil-previa" alt="">
+        <label class="btn btn--suave" for="perfil-archivo">Cambiar foto</label>
+        <input id="perfil-archivo" type="file" accept="image/*" hidden>
+        <small id="perfil-info"></small>
+      </div>
+
+      <label for="perfil-texto">Texto</label>
+      <textarea id="perfil-texto" rows="9"></textarea>
+      <small class="ayuda-campo">Dejá una línea en blanco entre párrafos.</small>
+
+      <div class="acciones">
+        <button class="btn btn--suave" type="button" id="btn-cancelar-sobre">Cancelar</button>
+        <button class="btn btn--primario" type="submit" id="btn-guardar-sobre">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
   <div class="aviso" id="aviso" hidden></div>
 
-  <script src="admin.js?v=3"></script>
+  <script src="admin.js?v=4"></script>
 </body>
 </html>

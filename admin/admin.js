@@ -16,6 +16,7 @@ const CONFIG = {
   repo: "wildmilu.github.io",
   branch: "main",
   archivoDatos: "fotos.json",
+  archivoSitio: "sitio.json",   // texto y foto de "Sobre Milagros"
   carpetaImagenes: "images",
   maxLado: 2000,      // px del lado más largo al achicar
   anchoMiniatura: 800, // px de ancho de la miniatura de la galería
@@ -33,7 +34,10 @@ let fotos = [];               // lo que se ve en el panel (con cambios)
 let fotosPublicadas = [];     // copia de lo último publicado (para "Descartar")
 let commitBase = "";          // commit sobre el que se cargó fotos.json
 let shaDatos = "";            // sha de fotos.json en ese commit
-let imagenesNuevas = new Map();   // ruta → { base64, miniatura } (pendientes de subir)
+let sitio = null;             // { sobre: { foto, texto } } con cambios
+let sitioPublicado = null;    // copia de lo último publicado
+let shaSitio = "";            // sha de sitio.json ("" si todavía no existe)
+let imagenesNuevas = new Map();   // ruta → { base64, miniatura } (pendientes de subir; miniatura null = sin miniatura)
 let vistasPrevias = new Map();    // ruta → objectURL (para ver fotos aún no desplegadas)
 let cambios = [];             // descripciones para el mensaje del commit
 let editando = -1;            // índice en edición (-1 = nueva)
@@ -72,18 +76,32 @@ function base64ATexto(b64) {
   return new TextDecoder().decode(bytes);
 }
 
-async function leerDatos(commit) {
-  const archivo = await gh(`${repo()}/contents/${CONFIG.archivoDatos}?ref=${commit}`);
-  return { sha: archivo.sha, datos: JSON.parse(base64ATexto(archivo.content)) };
+async function leerArchivo(ruta, commit) {
+  try {
+    const archivo = await gh(`${repo()}/contents/${ruta}?ref=${commit}`);
+    return { sha: archivo.sha, datos: JSON.parse(base64ATexto(archivo.content)) };
+  } catch (err) {
+    if (err.status === 404 && ruta === CONFIG.archivoSitio) return { sha: "", datos: null };  // todavía no existe
+    throw err;
+  }
 }
+
+// Texto de respaldo si sitio.json no existe (el mismo que trae index.html)
+const SITIO_INICIAL = { sobre: { foto: "images/Perfil.jpeg", texto: "" } };
 
 async function cargar() {
   const ref = await gh(`${repo()}/git/ref/heads/${CONFIG.branch}`);
-  const { sha, datos } = await leerDatos(ref.object.sha);
+  const [datos, datosSitio] = await Promise.all([
+    leerArchivo(CONFIG.archivoDatos, ref.object.sha),
+    leerArchivo(CONFIG.archivoSitio, ref.object.sha),
+  ]);
   commitBase = ref.object.sha;
-  shaDatos = sha;
-  fotosPublicadas = (datos.fotos || []).filter(f => f && f.src);
+  shaDatos = datos.sha;
+  shaSitio = datosSitio.sha;
+  fotosPublicadas = (datos.datos.fotos || []).filter(f => f && f.src);
   fotos = structuredClone(fotosPublicadas);
+  sitioPublicado = datosSitio.datos || structuredClone(SITIO_INICIAL);
+  sitio = structuredClone(sitioPublicado);
   imagenesNuevas.clear();
   cambios = [];
   render();
@@ -96,8 +114,8 @@ async function publicar() {
 
   // Si alguien publicó desde otro dispositivo, no pisamos sus cambios.
   if (cabeza !== commitBase) {
-    const { sha } = await leerDatos(cabeza);
-    if (sha !== shaDatos) {
+    const [d, ds] = await Promise.all([leerArchivo(CONFIG.archivoDatos, cabeza), leerArchivo(CONFIG.archivoSitio, cabeza)]);
+    if (d.sha !== shaDatos || ds.sha !== shaSitio) {
       const err = new Error("conflicto");
       err.conflicto = true;
       throw err;
@@ -107,11 +125,13 @@ async function publicar() {
   const commit = await gh(`${repo()}/git/commits/${cabeza}`);
   const arbol = [];
 
-  const usadas = new Set(fotos.map(f => rutaRepo(f.src)));
+  const usadas = new Set([...fotos.map(f => rutaRepo(f.src)), rutaRepo(sitio.sobre.foto)]);
   for (const [ruta, imagen] of imagenesNuevas) {
-    if (!usadas.has(ruta)) continue;  // se agregó y se borró antes de publicar
+    if (!usadas.has(ruta)) continue;  // se agregó y se reemplazó/borró antes de publicar
     // la foto grande (para el visor) y su miniatura (para la grilla)
-    for (const [destino, base64] of [[ruta, imagen.base64], [rutaMiniatura(ruta), imagen.miniatura]]) {
+    const archivos = [[ruta, imagen.base64]];
+    if (imagen.miniatura) archivos.push([rutaMiniatura(ruta), imagen.miniatura]);
+    for (const [destino, base64] of archivos) {
       const blob = await gh(`${repo()}/git/blobs`, { method: "POST", body: { content: base64, encoding: "base64" } });
       arbol.push({ path: destino, mode: "100644", type: "blob", sha: blob.sha });
     }
@@ -124,6 +144,12 @@ async function publicar() {
     path: CONFIG.archivoDatos, mode: "100644", type: "blob",
     content: JSON.stringify({ fotos }, null, 2) + "\n",
   });
+  if (JSON.stringify(sitio) !== JSON.stringify(sitioPublicado)) {
+    arbol.push({
+      path: CONFIG.archivoSitio, mode: "100644", type: "blob",
+      content: JSON.stringify(sitio, null, 2) + "\n",
+    });
+  }
 
   const nuevoArbol = await gh(`${repo()}/git/trees`, { method: "POST", body: { base_tree: commit.tree.sha, tree: arbol } });
   const mensaje = cambios.length === 1 ? cambios[0] : `Actualizar galería (${cambios.length} cambios)\n\n- ` + cambios.join("\n- ");
@@ -241,6 +267,7 @@ function boton(texto, titulo, clase, accion) {
 }
 
 function render() {
+  renderSobre();
   const lista = $("lista");
   lista.innerHTML = "";
   $("contador").textContent = `(${fotos.length})`;
@@ -366,8 +393,9 @@ function guardarFormulario(e) {
     return;
   }
 
+  const anterior = editando >= 0 ? fotos[editando] : {};
   const datos = {
-    src: editando >= 0 ? fotos[editando].src : "",
+    src: anterior.src || "",
     titulo,
     especie: $("f-especie").value.trim(),
     categoria: $("f-categoria").value,
@@ -376,11 +404,16 @@ function guardarFormulario(e) {
     descripcion: $("f-descripcion").value.trim(),
   };
 
+  // Tamaño de la foto: la galería lo usa para reservar el lugar y que nada salte al cargar
+  if (anterior.ancho && anterior.alto) { datos.ancho = anterior.ancho; datos.alto = anterior.alto; }
+
   if (imagenElegida) {
     const ruta = rutaNueva(titulo);
     imagenesNuevas.set(ruta, { base64: imagenElegida.base64, miniatura: imagenElegida.miniatura });
     vistasPrevias.set(ruta, imagenElegida.url);
     datos.src = ruta;
+    datos.ancho = imagenElegida.ancho;
+    datos.alto = imagenElegida.alto;
   }
 
   if (editando >= 0) {
@@ -392,6 +425,62 @@ function guardarFormulario(e) {
   }
 
   $("dialogo").close();
+  render();
+}
+
+/* ---------- Editor de "Sobre Milagros" ---------- */
+let perfilElegido = null;     // foto nueva elegida en el editor (procesada)
+
+function renderSobre() {
+  $("sobre-miniatura").src = urlMiniatura(sitio.sobre.foto);
+  $("sobre-miniatura").onerror = function () { this.onerror = null; this.src = "../" + rutaRepo(sitio.sobre.foto); };
+  const texto = (sitio.sobre.texto || "").trim();
+  $("sobre-resumen").textContent = texto ? texto.split(/\n/)[0] : "(usa el texto original del sitio)";
+}
+
+function abrirSobre() {
+  perfilElegido = null;
+  $("perfil-archivo").value = "";
+  $("perfil-info").textContent = "";
+  $("perfil-previa").src = vistasPrevias.get(rutaRepo(sitio.sobre.foto)) || "../" + rutaRepo(sitio.sobre.foto);
+  $("perfil-texto").value = sitio.sobre.texto || "";
+  $("dialogo-sobre").showModal();
+}
+
+async function alElegirPerfil() {
+  const archivo = $("perfil-archivo").files[0];
+  if (!archivo) return;
+  $("perfil-info").textContent = "Preparando la foto…";
+  $("btn-guardar-sobre").disabled = true;
+  try {
+    perfilElegido = await procesarImagen(archivo);
+    $("perfil-previa").src = perfilElegido.url;
+    $("perfil-info").textContent = `Lista ✓ ${perfilElegido.ancho}×${perfilElegido.alto}px · ${Math.round(perfilElegido.peso / 1024)} KB`;
+  } catch {
+    perfilElegido = null;
+    $("perfil-info").textContent = "No se pudo leer esta foto. Probá con JPG o PNG.";
+  } finally {
+    $("btn-guardar-sobre").disabled = false;
+  }
+}
+
+function guardarSobre(e) {
+  e.preventDefault();
+  const texto = $("perfil-texto").value.replace(/\r/g, "").replace(/\n{3,}/g, "\n\n").trim();
+  const nuevo = structuredClone(sitio);
+  nuevo.sobre.texto = texto;
+  if (perfilElegido) {
+    // nombre nuevo cada vez: así nadie ve la foto vieja guardada en caché
+    const ruta = `${CONFIG.carpetaImagenes}/perfil-${Date.now().toString(36)}.jpg`;
+    imagenesNuevas.set(ruta, { base64: perfilElegido.base64, miniatura: null });
+    vistasPrevias.set(ruta, perfilElegido.url);
+    nuevo.sobre.foto = ruta;
+  }
+  if (JSON.stringify(nuevo) !== JSON.stringify(sitio)) {
+    sitio = nuevo;
+    cambios.push(perfilElegido ? 'Actualizar "Sobre Milagros" (foto y texto)' : 'Actualizar texto de "Sobre Milagros"');
+  }
+  $("dialogo-sobre").close();
   render();
 }
 
@@ -440,6 +529,10 @@ $("btn-salir").addEventListener("click", () => {
 });
 
 $("btn-agregar").addEventListener("click", () => abrirFormulario());
+$("btn-editar-sobre").addEventListener("click", abrirSobre);
+$("btn-cancelar-sobre").addEventListener("click", () => $("dialogo-sobre").close());
+$("perfil-archivo").addEventListener("change", alElegirPerfil);
+$("form-sobre").addEventListener("submit", guardarSobre);
 $("btn-cancelar").addEventListener("click", () => $("dialogo").close());
 $("archivo").addEventListener("change", alElegirArchivo);
 $("form-foto").addEventListener("submit", guardarFormulario);
@@ -447,6 +540,7 @@ $("form-foto").addEventListener("submit", guardarFormulario);
 $("btn-descartar").addEventListener("click", () => {
   if (!confirm("¿Descartar todos los cambios sin publicar?")) return;
   fotos = structuredClone(fotosPublicadas);
+  sitio = structuredClone(sitioPublicado);
   imagenesNuevas.clear();
   cambios = [];
   render();

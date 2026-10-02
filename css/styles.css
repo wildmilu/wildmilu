@@ -144,25 +144,27 @@ img { display: block; max-width: 100%; }
   background: var(--verde-bosque); color: #fff; border-color: var(--verde-bosque);
 }
 
-/* ---------- GALERÍA (masonry con columnas) ---------- */
-.galeria { column-count: 3; column-gap: 1.2rem; }
-@media (max-width: 900px) { .galeria { column-count: 2; } }
-@media (max-width: 560px) { .galeria { column-count: 1; } }
+/* ---------- GALERÍA (masonry: main.js reparte las fotos en columnas) ---------- */
+.galeria { display: flex; gap: 1.2rem; align-items: flex-start; }
+.galeria__col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1.2rem; }
 
 .card {
-  position: relative; break-inside: avoid; margin-bottom: 1.2rem;
+  position: relative; display: block; width: 100%; padding: 0; border: 0;
+  background: var(--arena); font: inherit; text-align: left; color: inherit;
   border-radius: var(--radio); overflow: hidden; cursor: pointer;
   box-shadow: var(--sombra); transition: transform 0.25s;
 }
 .card:hover { transform: translateY(-4px); }
-.card img { width: 100%; height: auto; transition: transform 0.4s; }
+.card:focus-visible { outline: 3px solid var(--terracota); outline-offset: 3px; }
+.card img { display: block; width: 100%; height: auto; transition: transform 0.4s; }
 .card:hover img { transform: scale(1.05); }
+.card__titulo, .card__especie { display: block; }
 .card__info {
   position: absolute; inset: auto 0 0 0; padding: 1.5rem 1rem 1rem;
   background: linear-gradient(transparent, rgba(38,34,29,0.85)); color: #fff;
   opacity: 0; transform: translateY(10px); transition: all 0.3s;
 }
-.card:hover .card__info { opacity: 1; transform: translateY(0); }
+.card:hover .card__info, .card:focus-visible .card__info { opacity: 1; transform: translateY(0); }
 .card__titulo { font-family: var(--fuente-titulo); font-size: 1.2rem; }
 .card__especie { font-size: 0.8rem; font-style: italic; opacity: 0.85; }
 
@@ -185,6 +187,14 @@ img { display: block; max-width: 100%; }
 .lightbox__meta h3 { font-family: var(--fuente-titulo); font-size: 1.8rem; margin-bottom: 0.25rem; }
 .lightbox__meta .esp { font-style: italic; opacity: 0.8; }
 .lightbox__meta .detalle { font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.9; }
+.lightbox__compartir {
+  display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 0.9rem;
+  padding: 0.5rem 1.1rem; border-radius: 50px; cursor: pointer;
+  background: rgba(247, 244, 236, 0.1); color: var(--crema);
+  border: 1px solid rgba(247, 244, 236, 0.25);
+  font: inherit; font-size: 0.85rem; transition: background 0.2s;
+}
+.lightbox__compartir:hover { background: rgba(247, 244, 236, 0.2); }
 .lightbox__meta .contador { font-size: 0.75rem; letter-spacing: 2px; margin-top: 0.9rem; opacity: 0.45; }
 .lightbox__cerrar {
   position: absolute; top: 1.5rem; right: 2rem; font-size: 2.2rem;
@@ -223,5 +233,28 @@ img { display: block; max-width: 100%; }
 .footer__logo { font-family: var(--fuente-titulo); font-size: 1.6rem; margin-bottom: 0.5rem; }
 .footer__logo span { color: #f2b8a2; }
 .footer a { color: #f2b8a2; text-decoration: none; }
+.footer__redes { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 1.5rem; margin-top: 0.4rem; }
+.footer__redes a { display: inline-flex; align-items: center; gap: 0.4rem; }
 .footer a:hover { text-decoration: underline; }
 .footer small { opacity: 0.7; display: block; margin-top: 1rem; }
+
+/* ---------- ÍCONOS, INSTAGRAM, AVISO Y FOCO ---------- */
+.icono { width: 1.1em; height: 1.1em; flex-shrink: 0; }
+.sobre__ig {
+  display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;
+  color: var(--terracota); font-weight: 500; text-decoration: none;
+}
+.sobre__ig:hover { text-decoration: underline; }
+
+.aviso {
+  position: fixed; left: 50%; bottom: 1.5rem; z-index: 200;
+  transform: translate(-50%, 1rem); opacity: 0; pointer-events: none;
+  padding: 0.7rem 1.2rem; border-radius: 50px;
+  background: var(--crema); color: var(--carbon); font-size: 0.9rem;
+  box-shadow: var(--sombra); transition: opacity 0.2s, transform 0.2s;
+}
+.aviso.visible { opacity: 1; transform: translate(-50%, 0); }
+
+/* Foco visible solo al usar el teclado (no al tocar o hacer clic) */
+a:focus-visible, button:focus-visible { outline: 3px solid var(--terracota); outline-offset: 3px; border-radius: 6px; }
+.lightbox button:focus-visible { outline-color: var(--crema); }

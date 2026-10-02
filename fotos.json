@@ -7,7 +7,9 @@
       "categoria": "Aves",
       "lugar": "Anisacate",
       "fecha": "Septiembre 2026",
-      "descripcion": ""
+      "descripcion": "",
+      "ancho": 2000,
+      "alto": 1360
     },
     {
       "src": "images/carpincho.jpg",
@@ -16,7 +18,9 @@
       "categoria": "Mamíferos",
       "lugar": "Esteros del Ibera",
       "fecha": "Enero 2024",
-      "descripcion": ""
+      "descripcion": "",
+      "ancho": 2000,
+      "alto": 1578
     },
     {
       "src": "images/picaflor-cometa.jpg",
@@ -25,7 +29,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Con su larga cola dorada, libando entre las salvias rojas."
+      "descripcion": "Con su larga cola dorada, libando entre las salvias rojas.",
+      "ancho": 1600,
+      "alto": 846
     },
     {
       "src": "images/cardenal.jpg",
@@ -34,7 +40,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Ese copete rojo imposible de no mirar, entre las ramas de un algarrobo."
+      "descripcion": "Ese copete rojo imposible de no mirar, entre las ramas de un algarrobo.",
+      "ancho": 1600,
+      "alto": 1214
     },
     {
       "src": "images/chiflon.jpg",
@@ -43,7 +51,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "La garza silbadora, con su antifaz celeste y pico rosado."
+      "descripcion": "La garza silbadora, con su antifaz celeste y pico rosado.",
+      "ancho": 1600,
+      "alto": 1235
     },
     {
       "src": "images/chimango.jpg",
@@ -52,7 +62,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Posado en lo alto, dando su clásico chillido."
+      "descripcion": "Posado en lo alto, dando su clásico chillido.",
+      "ancho": 1600,
+      "alto": 1200
     },
     {
       "src": "images/taguato.jpg",
@@ -61,7 +73,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "El gavilán común, atento desde la punta de una rama seca."
+      "descripcion": "El gavilán común, atento desde la punta de una rama seca.",
+      "ancho": 1600,
+      "alto": 1123
     },
     {
       "src": "images/lechucita.jpg",
@@ -70,7 +84,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Ojos enormes y dorados que lo ven todo al atardecer."
+      "descripcion": "Ojos enormes y dorados que lo ven todo al atardecer.",
+      "ancho": 1284,
+      "alto": 1254
     },
     {
       "src": "images/nandu.jpg",
@@ -79,7 +95,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "El ave corredora más grande de Sudamérica, entre los pastos."
+      "descripcion": "El ave corredora más grande de Sudamérica, entre los pastos.",
+      "ancho": 1600,
+      "alto": 1139
     },
     {
       "src": "images/golondrinas.jpg",
@@ -88,7 +106,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Dos golondrinas descansando en la rama de un sauce."
+      "descripcion": "Dos golondrinas descansando en la rama de un sauce.",
+      "ancho": 1600,
+      "alto": 813
     },
     {
       "src": "images/durmili.jpg",
@@ -97,7 +117,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Quietos y tranquilos, fieles a su fama de dormilones."
+      "descripcion": "Quietos y tranquilos, fieles a su fama de dormilones.",
+      "ancho": 1600,
+      "alto": 1058
     },
     {
       "src": "images/tiranidos.jpg",
@@ -106,7 +128,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Dos jóvenes esperando en una rama con líquenes."
+      "descripcion": "Dos jóvenes esperando en una rama con líquenes.",
+      "ancho": 1600,
+      "alto": 1094
     },
     {
       "src": "images/zorzal-americano.jpg",
@@ -115,7 +139,9 @@
       "categoria": "Aves",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Su pecho anaranjado se destaca sobre el musgo verde."
+      "descripcion": "Su pecho anaranjado se destaca sobre el musgo verde.",
+      "ancho": 1600,
+      "alto": 1256
     },
     {
       "src": "images/yacare.jpg",
@@ -124,7 +150,9 @@
       "categoria": "Reptiles",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Sólo los ojos asoman entre los camalotes."
+      "descripcion": "Sólo los ojos asoman entre los camalotes.",
+      "ancho": 1600,
+      "alto": 1066
     },
     {
       "src": "images/lagartija.jpg",
@@ -133,7 +161,9 @@
       "categoria": "Reptiles",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Su verde eléctrico brilla tomando sol sobre una roca."
+      "descripcion": "Su verde eléctrico brilla tomando sol sobre una roca.",
+      "ancho": 1600,
+      "alto": 1265
     },
     {
       "src": "images/zorro.jpg",
@@ -142,7 +172,9 @@
       "categoria": "Mamíferos",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Enroscado y en calma, durmiendo sobre la piedra."
+      "descripcion": "Enroscado y en calma, durmiendo sobre la piedra.",
+      "ancho": 1600,
+      "alto": 1200
     },
     {
       "src": "images/mono-caraya.jpg",
@@ -151,7 +183,9 @@
       "categoria": "Mamíferos",
       "lugar": "",
       "fecha": "",
-      "descripcion": "Aullador, observando desde las ramas de la selva."
+      "descripcion": "Aullador, observando desde las ramas de la selva.",
+      "ancho": 1600,
+      "alto": 1149
     },
     {
       "src": "images/vaca-highland.jpg",
@@ -160,14 +194,18 @@
       "categoria": "Mamíferos",
       "lugar": "",
       "fecha": "",
-      "descripcion": "El clásico flequillo de las vacas peludas de las tierras altas."
+      "descripcion": "El clásico flequillo de las vacas peludas de las tierras altas.",
+      "ancho": 1600,
+      "alto": 1106
     },
     {
       "categoria": "Aves",
       "src": "images/tacuarita1.jpg",
       "titulo": "Tacuarita",
       "especie": "Tacuarita",
-      "lugar": "asd"
+      "lugar": "asd",
+      "ancho": 2310,
+      "alto": 1719
     }
   ]
 }

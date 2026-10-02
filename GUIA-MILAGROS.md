@@ -40,6 +40,15 @@ Tocá **Editar**, cambiá lo que quieras (también podés cambiar la imagen) →
 > 💡 Tip: completá el **lugar** y la **fecha** de las fotos que están vacías, y
 > corregí las especies que dejó Pablo (algunas son aproximadas).
 
+## 👩 Cambiar tu foto o tu texto ("Sobre Milagros")
+Arriba de todo en el panel está **"Sobre Milagros"** → **Editar**.
+Podés cambiar la foto y el texto (dejá una línea en blanco entre párrafos)
+→ **Guardar** → **Publicar**.
+
+## 🔗 Compartir una foto puntual
+En la web, abrí la foto y tocá **Compartir**: se abre el menú del celu para
+mandarla por WhatsApp, Instagram, etc. Quien abra el link ve directo esa foto.
+
 ## 🔀 Cambiar el orden
 Con las flechitas **↑ ↓** de cada foto → **Publicar**.
 
