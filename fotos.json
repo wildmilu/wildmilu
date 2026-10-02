@@ -1,6 +1,15 @@
 {
   "fotos": [
     {
+      "src": "images/benteveo.jpg",
+      "titulo": "Benteveo",
+      "especie": "Pitangus sulphuratus",
+      "categoria": "Jardín",
+      "lugar": "Anisacate",
+      "fecha": "Septiembre 2026",
+      "descripcion": ""
+    },
+    {
       "src": "images/carpincho.jpg",
       "titulo": "Carpincho",
       "especie": "Carpincho",
