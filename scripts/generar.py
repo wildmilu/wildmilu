@@ -3,6 +3,7 @@
 WildMilu · arma la versión publicada del sitio (lo corre GitHub Actions en cada cambio).
 
 Copia el sitio a _site/ y le agrega:
+  - images/thumbs/…      → las miniaturas que falten (por si una foto se subió sin panel)
   - foto/<id>/index.html → una página por foto con su vista previa para WhatsApp,
     Instagram, etc. (og:image). Las personas son redirigidas al visor de esa foto.
   - sitemap.xml          → para que Google encuentre el sitio y sus fotos.
@@ -59,6 +60,24 @@ for nombre in os.listdir("."):
 
 fotos = [f for f in json.load(open("fotos.json", encoding="utf-8")).get("fotos", []) if f and f.get("src")]
 
+# ---------- 1b. Miniaturas que falten ----------
+try:
+    from PIL import Image, ImageOps
+except ImportError:
+    Image = None
+    print("Aviso: sin Pillow no se generan miniaturas faltantes")
+for foto in fotos:
+    src, mini = ruta(foto["src"]), miniatura(foto["src"])
+    destino = os.path.join(SALIDA, mini)
+    if Image is None or mini == src or os.path.exists(destino) or not os.path.exists(src):
+        continue
+    os.makedirs(os.path.dirname(destino), exist_ok=True)
+    im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
+    if im.width > ANCHO_MINIATURA:
+        im = im.resize((ANCHO_MINIATURA, round(im.height * ANCHO_MINIATURA / im.width)), Image.LANCZOS)
+    im.save(destino, "JPEG", quality=78, optimize=True, progressive=True)
+    print("Miniatura creada:", mini)
+
 # ---------- 2. Una página por foto (vista previa al compartir) ----------
 PLANTILLA = """<!DOCTYPE html>
 <html lang="es">
@@ -94,7 +113,7 @@ for foto in fotos:
     ident = id_foto(foto)
     partes = [foto.get("especie"), " · ".join(p for p in (foto.get("lugar"), foto.get("fecha")) if p), foto.get("descripcion")]
     descripcion = " — ".join(p for p in partes if p) or "Fotografía de naturaleza por Milagros."
-    imagen = miniatura(foto["src"]) if os.path.exists(miniatura(foto["src"])) else ruta(foto["src"])
+    imagen = miniatura(foto["src"]) if os.path.exists(os.path.join(SALIDA, miniatura(foto["src"]))) else ruta(foto["src"])
     ancho, alto = foto.get("ancho"), foto.get("alto")
     if ancho and alto and imagen != ruta(foto["src"]) and ancho > ANCHO_MINIATURA:
         ancho, alto = ANCHO_MINIATURA, round(alto * ANCHO_MINIATURA / ancho)

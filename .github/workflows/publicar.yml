@@ -22,7 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Generar páginas de fotos y sitemap
+      - name: Instalar Pillow (para miniaturas faltantes)
+        run: pip install --quiet pillow
+      - name: Generar páginas de fotos, miniaturas faltantes y sitemap
         run: python3 scripts/generar.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
