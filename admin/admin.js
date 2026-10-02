@@ -18,6 +18,7 @@ const CONFIG = {
   archivoDatos: "fotos.json",
   carpetaImagenes: "images",
   maxLado: 2000,      // px del lado más largo al achicar
+  anchoMiniatura: 800, // px de ancho de la miniatura de la galería
   calidad: 0.85,      // calidad JPEG (0 a 1)
 };
 
@@ -31,7 +32,7 @@ let fotos = [];               // lo que se ve en el panel (con cambios)
 let fotosPublicadas = [];     // copia de lo último publicado (para "Descartar")
 let commitBase = "";          // commit sobre el que se cargó fotos.json
 let shaDatos = "";            // sha de fotos.json en ese commit
-let imagenesNuevas = new Map();   // ruta → base64 (pendientes de subir)
+let imagenesNuevas = new Map();   // ruta → { base64, miniatura } (pendientes de subir)
 let vistasPrevias = new Map();    // ruta → objectURL (para ver fotos aún no desplegadas)
 let cambios = [];             // descripciones para el mensaje del commit
 let editando = -1;            // índice en edición (-1 = nueva)
@@ -106,10 +107,13 @@ async function publicar() {
   const arbol = [];
 
   const usadas = new Set(fotos.map(f => rutaRepo(f.src)));
-  for (const [ruta, base64] of imagenesNuevas) {
+  for (const [ruta, imagen] of imagenesNuevas) {
     if (!usadas.has(ruta)) continue;  // se agregó y se borró antes de publicar
-    const blob = await gh(`${repo()}/git/blobs`, { method: "POST", body: { content: base64, encoding: "base64" } });
-    arbol.push({ path: ruta, mode: "100644", type: "blob", sha: blob.sha });
+    // la foto grande (para el visor) y su miniatura (para la grilla)
+    for (const [destino, base64] of [[ruta, imagen.base64], [rutaMiniatura(ruta), imagen.miniatura]]) {
+      const blob = await gh(`${repo()}/git/blobs`, { method: "POST", body: { content: base64, encoding: "base64" } });
+      arbol.push({ path: destino, mode: "100644", type: "blob", sha: blob.sha });
+    }
   }
 
   // Las imágenes de fotos borradas NO se eliminan del repo: alguna puede
@@ -135,43 +139,68 @@ function rutaRepo(src) {
   return String(src || "").trim().replace(/^\/+/, "");
 }
 
+/* images/x.jpg → images/thumbs/x.jpg (misma convención que js/main.js) */
+function rutaMiniatura(ruta) {
+  return ruta.replace(/^images\//, "images/thumbs/");
+}
+
 function urlMiniatura(src) {
   const ruta = rutaRepo(src);
   if (/^https?:\/\//i.test(src)) return src;
-  return vistasPrevias.get(ruta) || "../" + ruta;
+  return vistasPrevias.get(ruta) || "../" + rutaMiniatura(ruta);
 }
 
-/* Achica la foto (lado mayor ≤ maxLado) y la pasa a JPEG */
-function procesarImagen(archivo) {
+/* Dibuja la imagen a cierto tamaño y la devuelve como JPEG (Blob) */
+function aJpeg(img, ancho, alto) {
+  const canvas = document.createElement("canvas");
+  canvas.width = ancho;
+  canvas.height = alto;
+  canvas.getContext("2d").drawImage(img, 0, 0, ancho, alto);
+  return new Promise((resolve, reject) =>
+    canvas.toBlob(b => b ? resolve(b) : reject(new Error("No se pudo convertir la imagen")), "image/jpeg", CONFIG.calidad));
+}
+
+function aBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const lector = new FileReader();
+    lector.onload = () => resolve(lector.result.split(",")[1]);
+    lector.onerror = reject;
+    lector.readAsDataURL(blob);
+  });
+}
+
+function cargarImagen(archivo) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(archivo);
     const img = new Image();
-    img.onload = () => {
-      const escala = Math.min(1, CONFIG.maxLado / Math.max(img.naturalWidth, img.naturalHeight));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.round(img.naturalWidth * escala);
-      canvas.height = Math.round(img.naturalHeight * escala);
-      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      canvas.toBlob(blob => {
-        if (!blob) return reject(new Error("No se pudo convertir la imagen"));
-        // Si ya era un JPEG chico, recomprimirlo solo lo empeora: va el original.
-        if (escala === 1 && archivo.type === "image/jpeg" && archivo.size <= blob.size) blob = archivo;
-        const lector = new FileReader();
-        lector.onload = () => resolve({
-          base64: lector.result.split(",")[1],
-          url: URL.createObjectURL(blob),
-          peso: blob.size,
-          ancho: canvas.width,
-          alto: canvas.height,
-        });
-        lector.onerror = reject;
-        lector.readAsDataURL(blob);
-      }, "image/jpeg", CONFIG.calidad);
-    };
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("formato")); };
     img.src = url;
   });
+}
+
+/* Achica la foto (lado mayor ≤ maxLado), la pasa a JPEG y arma su miniatura */
+async function procesarImagen(archivo) {
+  const img = await cargarImagen(archivo);
+  const w = img.naturalWidth, h = img.naturalHeight;
+
+  const escala = Math.min(1, CONFIG.maxLado / Math.max(w, h));
+  const ancho = Math.round(w * escala), alto = Math.round(h * escala);
+  let blob = await aJpeg(img, ancho, alto);
+  // Si ya era un JPEG chico, recomprimirlo solo lo empeora: va el original.
+  if (escala === 1 && archivo.type === "image/jpeg" && archivo.size <= blob.size) blob = archivo;
+
+  const escalaMini = Math.min(1, CONFIG.anchoMiniatura / w);
+  const mini = await aJpeg(img, Math.round(w * escalaMini), Math.round(h * escalaMini));
+
+  return {
+    base64: await aBase64(blob),
+    miniatura: await aBase64(mini),
+    url: URL.createObjectURL(blob),
+    peso: blob.size,
+    ancho,
+    alto,
+  };
 }
 
 function slug(texto) {
@@ -221,6 +250,7 @@ function render() {
 
     const img = document.createElement("img");
     img.src = urlMiniatura(foto.src);
+    img.onerror = () => { img.onerror = null; img.src = "../" + rutaRepo(foto.src); };  // sin miniatura: la grande
     img.alt = "";
     img.loading = "lazy";
 
@@ -347,7 +377,7 @@ function guardarFormulario(e) {
 
   if (imagenElegida) {
     const ruta = rutaNueva(titulo);
-    imagenesNuevas.set(ruta, imagenElegida.base64);
+    imagenesNuevas.set(ruta, { base64: imagenElegida.base64, miniatura: imagenElegida.miniatura });
     vistasPrevias.set(ruta, imagenElegida.url);
     datos.src = ruta;
   }

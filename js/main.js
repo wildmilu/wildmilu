@@ -25,6 +25,13 @@ function normalizarRuta(src) {
   return s.replace(/^\/+/, "");             // "/images/x.jpg" → "images/x.jpg"
 }
 
+/* Miniatura liviana para la grilla: images/x.jpg → images/thumbs/x.jpg
+   (el panel la genera al subir cada foto; si falta, se usa la grande) */
+function rutaMiniatura(src) {
+  const ruta = normalizarRuta(src);
+  return ruta.startsWith("images/") ? ruta.replace("images/", "images/thumbs/") : ruta;
+}
+
 /* ---------- 0. Cargar los datos desde fotos.json ---------- */
 fetch("fotos.json?" + Date.now())          // el ?... evita caché vieja
   .then(r => r.json())
@@ -72,14 +79,17 @@ function renderizar(lista) {
     card.className = "card";
 
     const img = document.createElement("img");
-    img.src = normalizarRuta(foto.src);
+    img.src = rutaMiniatura(foto.src);
     img.alt = foto.titulo || "Foto de WildMilu";
-    img.loading = "lazy";
+    img.loading = indice < 4 ? "eager" : "lazy";   // las primeras, sin esperar
+    img.decoding = "async";
 
-    // Si la imagen no carga (ruta mal escrita, archivo faltante),
-    // se oculta la tarjeta en vez de mostrar el ícono roto.
+    // Si falta la miniatura se usa la foto grande; si tampoco está
+    // (ruta mal escrita, archivo borrado) se oculta la tarjeta.
     img.addEventListener("error", () => {
-      console.warn("No se encontró la imagen:", img.src);
+      const grande = normalizarRuta(foto.src);
+      if (!img.src.endsWith(grande)) { img.src = grande; return; }
+      console.warn("No se encontró la imagen:", grande);
       card.style.display = "none";
     });
 
@@ -115,13 +125,31 @@ function abrirLightbox(indice) {
 function mostrarFoto() {
   const foto = fotosVisibles[indiceActual];
   if (!foto) return;
-  lbImg.src = normalizarRuta(foto.src);
+  // Primero la miniatura (ya está en caché, aparece al instante)
+  // y en cuanto baja la foto grande, se reemplaza.
+  const grande = normalizarRuta(foto.src);
+  const completa = new Image();
+  completa.onload = () => { if (fotosVisibles[indiceActual] === foto) lbImg.src = grande; };
+  completa.src = grande;
+  lbImg.src = completa.complete ? grande : rutaMiniatura(foto.src);
   lbImg.alt = foto.titulo || "";
   lbTitulo.textContent  = foto.titulo || "";
   lbEspecie.textContent = foto.especie || "";
   const partes = [foto.lugar, foto.fecha].filter(Boolean).join(" · ");
   lbDetalle.textContent = [partes, foto.descripcion].filter(Boolean).join(" — ");
   lbContador.textContent = `${indiceActual + 1} / ${fotosVisibles.length}`;
+  precargarVecinas();
+}
+
+/* Baja por adelantado la foto siguiente y la anterior: al deslizar aparecen al instante */
+const precargadas = new Set();
+function precargarVecinas() {
+  const n = fotosVisibles.length;
+  [1, -1].forEach(d => {
+    const vecina = fotosVisibles[(indiceActual + d + n) % n];
+    const ruta = vecina && normalizarRuta(vecina.src);
+    if (ruta && !precargadas.has(ruta)) { precargadas.add(ruta); new Image().src = ruta; }
+  });
 }
 
 function cerrarLightbox() {

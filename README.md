@@ -11,7 +11,8 @@ wildmilu/
 ├── fotos.json          → 👈 los datos de las fotos (los edita el panel)
 ├── css/styles.css      → estilos (colores/tipografías en :root)
 ├── js/main.js          → lógica: lee fotos.json y arma la galería
-├── images/             → las fotos
+├── images/             → las fotos (las grandes, para el visor)
+│   └── thumbs/         → miniaturas de 800px para la grilla (las arma el panel)
 ├── admin/              → 🔐 el panel de Milagros
 │   ├── index.html
 │   ├── admin.js        → habla con la API de GitHub y achica las fotos
@@ -42,7 +43,9 @@ Y entrá a http://localhost:8000 (el panel en http://localhost:8000/admin/).
 
 ## ➕ Agregar fotos
 - **Milagros:** desde el panel → ver **GUIA-MILAGROS.md**.
-- **A mano (vos):** editás `fotos.json`, copiás la imagen a `images/` y `git push`.
+- **A mano (vos):** editás `fotos.json`, copiás la imagen a `images/` (y una
+  versión de 800px de ancho con el mismo nombre a `images/thumbs/`) y `git push`.
+  Si falta la miniatura, la galería usa la foto grande.
 
 **Categorías:** Jardín · Bosque · Humedales · Rapaces · Pastizal · Otra fauna
 (se cambian en `admin/admin.js`, constante `CATEGORIAS`).
