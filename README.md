@@ -1,8 +1,8 @@
 # 🐦 WildMilu — Fotografía de naturaleza de Milagros
 
 Sitio web estático + panel propio para que Milagros cargue fotos sola.
-Sin servidores ni servicios pagos: se aloja gratis en Cloudflare Pages o
-GitHub Pages.
+Sin servidores ni servicios pagos: se aloja gratis en GitHub Pages
+→ https://pablote9d.github.io/wildmilu/
 
 ## 📂 Estructura
 ```
