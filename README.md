@@ -2,7 +2,7 @@
 
 Sitio web estático + panel propio para que Milagros cargue fotos sola.
 Sin servidores ni servicios pagos: se aloja gratis en GitHub Pages
-→ https://pablote9d.github.io/wildmilu/
+→ https://wildmilu.github.io
 
 ## 📂 Estructura
 ```

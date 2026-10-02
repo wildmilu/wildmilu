@@ -1,36 +1,40 @@
-# 🚀 Publicar WildMilu sin Netlify (para Pablo)
+# 🚀 Publicar WildMilu en GitHub Pages (para Pablo)
 
 El sitio ya no depende de Netlify: es HTML estático + un panel propio (`/admin`)
-que guarda los cambios directo en GitHub. Lo podés alojar **gratis** en
-cualquiera de estas dos opciones. Elegí una.
+que guarda los cambios directo en GitHub. Se aloja **gratis** en GitHub Pages
+en **https://wildmilu.github.io**.
 
 ---
 
-## Opción A · Cloudflare Pages (recomendada si el repo sigue privado)
+## 1 · Crear la organización `wildmilu`
 
-Gratis, ancho de banda ilimitado y funciona con repos **privados**.
+1. GitHub → **+** (arriba a la derecha) → **New organization** → plan **Free**.
+2. **Organization name:** `wildmilu`.
 
-1. Creá una cuenta en https://dash.cloudflare.com (gratis).
-2. **Workers & Pages → Create → Pages → Connect to Git**.
-3. Autorizá GitHub y elegí el repo **wildmilu**.
-4. Configuración del build:
-   - **Production branch:** `main`
-   - **Framework preset:** None
-   - **Build command:** *(vacío)*
-   - **Build output directory:** `/`
-5. **Save and Deploy**. Queda en `https://wildmilu.pages.dev`.
+## 2 · Pasar el repo a la organización
 
-Cada cambio en `main` (tuyo o del panel de Mili) se publica solo en ~1 minuto.
+1. En el repo: **Settings → General → Danger Zone → Transfer ownership**.
+2. **New owner:** `wildmilu`. Confirmá.
 
-## Opción B · GitHub Pages (todo en GitHub)
+## 3 · Renombrar y hacer público el repo
 
-Gratis, pero **solo para repos públicos** (para privados pide GitHub Pro).
-No hay nada privado en el repo: son las mismas fotos que ya se ven en la web,
-y la llave del panel NO está guardada en el repo.
+1. Ya en `wildmilu/wildmilu`: **Settings → General → Repository name** →
+   `wildmilu.github.io` → **Rename**.
+2. **Danger Zone → Change repository visibility → Public**.
+   (No hay nada privado: son las mismas fotos que ya se ven en la web, y la
+   llave del panel NO está guardada en el repo.)
 
-1. En GitHub: **Settings → General → Danger Zone → Change visibility → Public**.
-2. **Settings → Pages → Source: Deploy from a branch → `main` / `(root)` → Save**.
-3. Queda en `https://pablote9d.github.io/wildmilu/`.
+## 4 · Activar GitHub Pages
+
+**Settings → Pages → Build and deployment**:
+- **Source:** Deploy from a branch
+- **Branch:** `main` · `/ (root)` → **Save**
+
+En 1-2 minutos queda en **https://wildmilu.github.io**. Cada cambio en `main`
+(tuyo o del panel de Mili) se publica solo en ~1 minuto.
+
+> 💡 Tu clon local sigue funcionando (GitHub redirige), pero conviene
+> actualizarlo: `git remote set-url origin https://github.com/wildmilu/wildmilu.github.io.git`
 
 ---
 
@@ -43,11 +47,14 @@ Mili no necesita cuenta de GitHub: usa la llave que vos le pasás.
    → Fine-grained tokens → Generate new token**.
 2. **Token name:** `WildMilu panel`
 3. **Expiration:** la más larga disponible (anotá cuándo vence 📅).
-4. **Repository access:** *Only select repositories* → `wildmilu`.
+4. **Resource owner:** `wildmilu` (la organización, no tu usuario).
+   **Repository access:** *Only select repositories* → `wildmilu.github.io`.
 5. **Permissions → Repository permissions → Contents: Read and write**.
    (Nada más. "Metadata: Read" se agrega solo.)
+   > Si al generarla dice que queda *pendiente de aprobación*, aprobala vos mismo
+   > en la organización: **Settings → Personal access tokens → Pending requests**.
 6. **Generate token** y copiá la llave (empieza con `github_pat_`).
-7. Abrí `<tu-sitio>/admin` en el celu/compu de Mili, pegá la llave,
+7. Abrí **https://wildmilu.github.io/admin** en el celu/compu de Mili, pegá la llave,
    dejá tildado "Recordarme" y entrá. Listo: no la tiene que volver a poner.
 
 > 🔒 Si la llave se pierde o se filtra: borrala en GitHub (mismo lugar) y creá
@@ -60,12 +67,8 @@ Mili no necesita cuenta de GitHub: usa la llave que vos le pasás.
 
 ## 🌐 Dominio propio (opcional, ~USD 10/año)
 
-Comprá `wildmilu.com` (Cloudflare lo vende a precio de costo) y:
-- **Cloudflare Pages:** tu proyecto → **Custom domains → Set up a domain**.
-- **GitHub Pages:** Settings → Pages → **Custom domain**.
-
-El sitio usa rutas relativas, así que funciona igual en un dominio propio o en
-una subcarpeta como `github.io/wildmilu/`.
+Si algún día comprás `wildmilu.com`: **Settings → Pages → Custom domain**.
+No hay que tocar código (el sitio usa rutas relativas).
 
 ---
 

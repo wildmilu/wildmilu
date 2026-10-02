@@ -7,7 +7,7 @@ y no necesitás saber nada de programación.
 
 ## 🔑 Entrar al panel
 
-1. Abrí en el navegador: **pablote9d.github.io/wildmilu/admin**
+1. Abrí en el navegador: **wildmilu.github.io/admin**
 2. La primera vez te pide una **llave**: te la pasa Pablo. Pegala, dejá
    tildado *"Recordarme"* y tocá **Entrar**.
 3. ¡Listo! Las próximas veces entrás directo.

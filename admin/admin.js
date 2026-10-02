@@ -12,8 +12,8 @@
    ===================================================================== */
 
 const CONFIG = {
-  owner: "Pablote9D",
-  repo: "wildmilu",
+  owner: "wildmilu",
+  repo: "wildmilu.github.io",
   branch: "main",
   archivoDatos: "fotos.json",
   carpetaImagenes: "images",
