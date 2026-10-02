@@ -1,6 +1,15 @@
 {
   "fotos": [
     {
+      "src": "images/carpincho.jpg",
+      "titulo": "Carpincho",
+      "especie": "Carpincho",
+      "categoria": "Otra fauna",
+      "lugar": "Esteros del Ibera",
+      "fecha": "Enero 2024",
+      "descripcion": ""
+    },
+    {
       "src": "images/picaflor-cometa.jpg",
       "titulo": "Picaflor cometa en vuelo",
       "especie": "Sappho sparganurus",
