@@ -14,13 +14,15 @@ let fotosVisibles = [];
 
 /* ---------------------------------------------------------------------
    Normaliza la ruta de una imagen.
-   Tolera que el panel escriba "images/x.jpg", "/images/x.jpg" o una URL.
+   Tolera "images/x.jpg", "/images/x.jpg" o una URL completa.
+   Las rutas quedan relativas para que el sitio funcione igual en un
+   dominio propio o en una subcarpeta (ej: usuario.github.io/wildmilu/).
    --------------------------------------------------------------------- */
 function normalizarRuta(src) {
   if (!src) return "";
   const s = String(src).trim();
   if (/^https?:\/\//i.test(s)) return s;   // URL completa: se deja igual
-  return s.startsWith("/") ? s : "/" + s;  // ruta relativa: se le pone "/"
+  return s.replace(/^\/+/, "");             // "/images/x.jpg" → "images/x.jpg"
 }
 
 /* ---------- 0. Cargar los datos desde fotos.json ---------- */

@@ -1,7 +1,7 @@
 {
   "fotos": [
     {
-      "src": "/images/picaflor-cometa.jpg",
+      "src": "images/picaflor-cometa.jpg",
       "titulo": "Picaflor cometa en vuelo",
       "especie": "Sappho sparganurus",
       "categoria": "Jardín",
@@ -10,7 +10,7 @@
       "descripcion": "Con su larga cola dorada, libando entre las salvias rojas."
     },
     {
-      "src": "/images/cardenal.jpg",
+      "src": "images/cardenal.jpg",
       "titulo": "Cardenal copetón",
       "especie": "Paroaria coronata",
       "categoria": "Bosque",
@@ -19,7 +19,7 @@
       "descripcion": "Ese copete rojo imposible de no mirar, entre las ramas de un algarrobo."
     },
     {
-      "src": "/images/chiflon.jpg",
+      "src": "images/chiflon.jpg",
       "titulo": "Chiflón al sol",
       "especie": "Syrigma sibilatrix",
       "categoria": "Humedales",
@@ -28,7 +28,7 @@
       "descripcion": "La garza silbadora, con su antifaz celeste y pico rosado."
     },
     {
-      "src": "/images/chimango.jpg",
+      "src": "images/chimango.jpg",
       "titulo": "Chimango cantando",
       "especie": "Milvago chimango",
       "categoria": "Rapaces",
@@ -37,7 +37,7 @@
       "descripcion": "Posado en lo alto, dando su clásico chillido."
     },
     {
-      "src": "/images/taguato.jpg",
+      "src": "images/taguato.jpg",
       "titulo": "Taguató vigilando",
       "especie": "Rupornis magnirostris",
       "categoria": "Rapaces",
@@ -46,7 +46,7 @@
       "descripcion": "El gavilán común, atento desde la punta de una rama seca."
     },
     {
-      "src": "/images/lechucita.jpg",
+      "src": "images/lechucita.jpg",
       "titulo": "Lechucita de las vizcacheras",
       "especie": "Athene cunicularia",
       "categoria": "Rapaces",
@@ -55,7 +55,7 @@
       "descripcion": "Ojos enormes y dorados que lo ven todo al atardecer."
     },
     {
-      "src": "/images/nandu.jpg",
+      "src": "images/nandu.jpg",
       "titulo": "Ñandú en el pastizal",
       "especie": "Rhea americana",
       "categoria": "Pastizal",
@@ -64,7 +64,7 @@
       "descripcion": "El ave corredora más grande de Sudamérica, entre los pastos."
     },
     {
-      "src": "/images/golondrinas.jpg",
+      "src": "images/golondrinas.jpg",
       "titulo": "Golondrinas al sol",
       "especie": "Pygochelidon cyanoleuca",
       "categoria": "Jardín",
@@ -73,7 +73,7 @@
       "descripcion": "Dos golondrinas descansando en la rama de un sauce."
     },
     {
-      "src": "/images/durmili.jpg",
+      "src": "images/durmili.jpg",
       "titulo": "Durmilí en pareja",
       "especie": "Nystalus maculatus",
       "categoria": "Bosque",
@@ -82,7 +82,7 @@
       "descripcion": "Quietos y tranquilos, fieles a su fama de dormilones."
     },
     {
-      "src": "/images/tiranidos.jpg",
+      "src": "images/tiranidos.jpg",
       "titulo": "Pareja de tiránidos",
       "especie": "(a confirmar)",
       "categoria": "Bosque",
@@ -91,7 +91,7 @@
       "descripcion": "Dos jóvenes esperando en una rama con líquenes."
     },
     {
-      "src": "/images/zorzal-americano.jpg",
+      "src": "images/zorzal-americano.jpg",
       "titulo": "Zorzal americano",
       "especie": "Turdus migratorius",
       "categoria": "Jardín",
@@ -100,7 +100,7 @@
       "descripcion": "Su pecho anaranjado se destaca sobre el musgo verde."
     },
     {
-      "src": "/images/yacare.jpg",
+      "src": "images/yacare.jpg",
       "titulo": "Yacaré al acecho",
       "especie": "Caiman sp.",
       "categoria": "Otra fauna",
@@ -109,7 +109,7 @@
       "descripcion": "Sólo los ojos asoman entre los camalotes."
     },
     {
-      "src": "/images/lagartija.jpg",
+      "src": "images/lagartija.jpg",
       "titulo": "Lagartija verde al sol",
       "especie": "Teius sp.",
       "categoria": "Otra fauna",
@@ -118,7 +118,7 @@
       "descripcion": "Su verde eléctrico brilla tomando sol sobre una roca."
     },
     {
-      "src": "/images/zorro.jpg",
+      "src": "images/zorro.jpg",
       "titulo": "Zorro dormido",
       "especie": "Lycalopex sp.",
       "categoria": "Otra fauna",
@@ -127,7 +127,7 @@
       "descripcion": "Enroscado y en calma, durmiendo sobre la piedra."
     },
     {
-      "src": "/images/mono-caraya.jpg",
+      "src": "images/mono-caraya.jpg",
       "titulo": "Mono carayá",
       "especie": "Alouatta caraya",
       "categoria": "Otra fauna",
@@ -136,7 +136,7 @@
       "descripcion": "Aullador, observando desde las ramas de la selva."
     },
     {
-      "src": "/images/vaca-highland.jpg",
+      "src": "images/vaca-highland.jpg",
       "titulo": "Vaca Highland",
       "especie": "Bos taurus (raza Highland)",
       "categoria": "Otra fauna",
@@ -146,7 +146,7 @@
     },
     {
       "categoria": "Otra fauna",
-      "src": "/images/tacuarita1.jpg",
+      "src": "images/tacuarita1.jpg",
       "titulo": "Tacuarita",
       "especie": "Tacuarita",
       "lugar": "asd"
