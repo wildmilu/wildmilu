@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=3">
+  <link rel="stylesheet" href="css/styles.css?v=4">
 
   <!-- Ícono de la pestaña (provisorio, hasta tener el logo definitivo) -->
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -123,6 +123,7 @@
     <button class="lightbox__cerrar" id="lb-cerrar" aria-label="Cerrar">&times;</button>
     <button class="lightbox__nav prev" id="lb-prev" aria-label="Anterior">&#8249;</button>
     <button class="lightbox__nav next" id="lb-next" aria-label="Siguiente">&#8250;</button>
+    <img class="lightbox__vecina" id="lb-vecina" alt="" aria-hidden="true" hidden>
     <div class="lightbox__contenido">
       <img class="lightbox__img" id="lb-img" src="" alt="">
       <div class="lightbox__meta">
@@ -143,7 +144,7 @@
   <!-- ⚠️ IMPORTANTE: solo main.js.
        NO debe haber ninguna línea con "js/data.js": ese era el archivo
        de la versión 1. Ahora las fotos se leen desde fotos.json. -->
-  <script src="js/main.js?v=6"></script>
+  <script src="js/main.js?v=7"></script>
 
   <!-- Estadísticas de visitas (GoatCounter: gratis, sin cookies) -->
   <script data-goatcounter="https://wildmilu.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>

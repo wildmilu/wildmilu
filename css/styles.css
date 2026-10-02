@@ -178,6 +178,16 @@ img { display: block; max-width: 100%; }
 /* Los gestos dentro del visor los maneja main.js: así Safari (iOS) no
    scrollea la página de atrás ni "se queda" con el arrastre */
 .lightbox { touch-action: none; overscroll-behavior: contain; }
+.lightbox { overflow: hidden; }   /* las fotos que entran y salen no generan scroll */
+.lightbox__contenido { will-change: transform; }
+.lightbox__vecina {
+  position: fixed; z-index: 1; object-fit: cover; border-radius: var(--radio);
+  pointer-events: none; will-change: transform;
+}
+.lightbox__vecina[hidden] { display: none; }
+/* Al terminar de pasar, el texto de la foto nueva aparece suave */
+.lightbox__meta { transition: opacity 0.25s ease; }
+.lightbox__contenido.entrando .lightbox__meta { opacity: 0; transition: none; }
 .lightbox__contenido {
   max-width: 1000px; width: 100%; display: grid;
   grid-template-columns: 1fr; gap: 1rem; text-align: center;

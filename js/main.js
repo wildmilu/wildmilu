@@ -224,6 +224,8 @@ function abrirLightbox(indice, { desdeLink = false } = {}) {
 }
 
 function ocultarLightbox() {
+  lbVecina.hidden = true;
+  ladoVecina = 0;
   lightbox.classList.remove("abierto");
   document.body.style.overflow = "";
   if (usandoTeclado && focoAnterior && document.contains(focoAnterior)) focoAnterior.focus({ preventScroll: true });
@@ -290,11 +292,6 @@ function precargarVecinas() {
   });
 }
 
-function cambiar(dir) {
-  indiceActual = (indiceActual + dir + fotosVisibles.length) % fotosVisibles.length;
-  mostrarFoto();
-}
-
 /* Compartir: en el celular abre el menú de compartir (WhatsApp, etc.);
    en la compu copia el link */
 const aviso = document.getElementById("aviso");
@@ -343,10 +340,109 @@ document.addEventListener("keydown", e => {
   }
 });
 
+/* ---------- Pasar de foto con animación (carrusel) ----------
+   La foto actual se corre y la vecina entra desde el costado. En el celular
+   sigue al dedo; en la compu lo hacen las flechas y el teclado. */
+const lbVecina = document.getElementById("lb-vecina");
+const SEPARACION = 24;                       // espacio entre una foto y la otra
+const DURACION = 320;                        // ms de la animación
+const CURVA = "cubic-bezier(0.22, 0.8, 0.24, 1)";
+const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
+let animando = false;
+let ladoVecina = 0;                          // 1 = la siguiente (a la derecha), -1 = la anterior
+
+const indiceVecino = dir => (indiceActual + dir + fotosVisibles.length) % fotosVisibles.length;
+const recorrido = () => window.innerWidth + SEPARACION;
+
+// Ubica la foto vecina exactamente donde va a quedar cuando pase a ser la actual
+// (así al terminar la animación no hay ningún salto, aunque cambie la proporción)
+function prepararVecina(dir) {
+  const foto = fotosVisibles[indiceVecino(dir)];
+  const marco = lbContenido.getBoundingClientRect();
+  const maxAlto = window.innerHeight * 0.72;
+  const prop = proporcion(foto);
+  let ancho = Math.min(marco.width, foto.ancho || marco.width), alto = ancho * prop;
+  if (alto > maxAlto) { alto = maxAlto; ancho = alto / prop; }
+  // el visor centra en vertical foto + textos: calculamos dónde arrancaría la foto
+  const estilo = getComputedStyle(lightbox);
+  const arriba = parseFloat(estilo.paddingTop), abajo = parseFloat(estilo.paddingBottom);
+  const separacion = parseFloat(getComputedStyle(lbContenido).rowGap) || 0;
+  const textos = lbContenido.querySelector(".lightbox__meta").offsetHeight;
+  const disponible = window.innerHeight - arriba - abajo;
+  const top = arriba + (disponible - (alto + separacion + textos)) / 2;
+  const grande = normalizarRuta(foto.src);
+  lbVecina.src = precargadas.has(grande) ? grande : rutaMiniatura(foto.src);
+  Object.assign(lbVecina.style, {
+    width: ancho + "px",
+    height: alto + "px",
+    left: marco.left + (marco.width - ancho) / 2 + "px",
+    top: top + "px",
+    transition: "none",
+    transform: `translateX(${dir * recorrido()}px)`,
+  });
+  lbVecina.hidden = false;
+  ladoVecina = dir;
+}
+
+// Mueve las dos fotos según cuánto se arrastró (dx negativo = hacia la izquierda)
+function arrastrarHorizontal(dx) {
+  const dir = dx < 0 ? 1 : -1;
+  if (dir !== ladoVecina) prepararVecina(dir);
+  lbContenido.style.transition = "none";
+  lbContenido.style.transform = `translateX(${dx}px)`;
+  lbVecina.style.transform = `translateX(${dx + dir * recorrido()}px)`;
+}
+
+function animar(el, transform) {
+  el.style.transition = `transform ${DURACION}ms ${CURVA}`;
+  el.style.transform = transform;
+}
+
+// Termina el pase: la actual sale, la vecina queda en el centro y pasa a ser la actual
+async function completarPase(dir) {
+  animando = true;
+  animar(lbContenido, `translateX(${-dir * recorrido()}px)`);
+  animar(lbVecina, "translateX(0px)");
+  await new Promise(r => setTimeout(r, DURACION));
+  indiceActual = indiceVecino(dir);
+  mostrarFoto();
+  lbContenido.style.transition = "none";
+  lbContenido.style.transform = "";
+  lbContenido.classList.add("entrando");             // el texto aparece suave
+  try { await lbImg.decode(); } catch { /* si falla, igual seguimos */ }
+  lbVecina.hidden = true;                            // recién ahora: sin parpadeo
+  ladoVecina = 0;
+  requestAnimationFrame(() => lbContenido.classList.remove("entrando"));
+  animando = false;
+}
+
+// No llegó a pasar: todo vuelve a su lugar
+function cancelarPase() {
+  if (!ladoVecina) return;
+  animar(lbContenido, "translateX(0px)");
+  animar(lbVecina, `translateX(${ladoVecina * recorrido()}px)`);
+  const lado = ladoVecina;
+  setTimeout(() => { if (ladoVecina === lado && !animando) { lbVecina.hidden = true; ladoVecina = 0; } }, DURACION);
+}
+
+// Flechas y teclado (y donde se pida "pasar" sin arrastre)
+function cambiar(dir) {
+  if (animando || fotosVisibles.length < 2) return;
+  if (sinMovimiento.matches) {                      // accesibilidad: sin animación
+    indiceActual = indiceVecino(dir);
+    mostrarFoto();
+    return;
+  }
+  prepararVecina(dir);
+  lbVecina.getBoundingClientRect();                 // fija la posición inicial antes de animar
+  completarPase(dir);
+}
+
 /* Gestos en el celular:
-   - izquierda/derecha → cambia de foto
+   - izquierda/derecha → la foto sigue al dedo y entra la vecina
    - hacia abajo → la foto sigue al dedo y, al soltar, se cierra el visor */
-let toqueX = null, toqueY = null, direccion = null, bajada = 0;
+let toqueX = null, toqueY = null, direccion = null, bajada = 0, deslizado = 0;
+let ultimoX = 0, ultimoT = 0, velocidad = 0;        // px/ms, para pases rápidos y cortos
 
 function moverVisor(dy, animado) {
   const t = animado ? "0.25s ease" : "0s";
@@ -361,48 +457,64 @@ function moverVisor(dy, animado) {
 }
 
 lightbox.addEventListener("touchstart", e => {
-  if (e.touches.length > 1) return;          // pellizco para hacer zoom: no tocar
-  if (e.target.closest("button")) return;    // tocar un botón (ej. Compartir) no es un gesto
-  toqueX = e.touches[0].clientX;
+  if (e.touches.length > 1 || animando) return;      // pellizco o animación en curso: no tocar
+  if (e.target.closest("button")) return;            // tocar un botón (ej. Compartir) no es un gesto
+  toqueX = ultimoX = e.touches[0].clientX;
   toqueY = e.touches[0].clientY;
+  ultimoT = e.timeStamp;
   direccion = null;
-  bajada = 0;
+  bajada = deslizado = velocidad = 0;
 }, { passive: true });
 
 lightbox.addEventListener("touchmove", e => {
   if (toqueX === null || e.touches.length > 1) return;
-  const dx = e.touches[0].clientX - toqueX;
+  const x = e.touches[0].clientX;
+  const dx = x - toqueX;
   const dy = e.touches[0].clientY - toqueY;
-  if (e.cancelable) e.preventDefault();       // que Safari no scrollee la página de atrás
+  if (e.cancelable) e.preventDefault();               // que Safari no scrollee la página de atrás
   if (!direccion && Math.hypot(dx, dy) > 10) direccion = Math.abs(dy) > Math.abs(dx) ? "vertical" : "horizontal";
   if (direccion === "vertical") {
-    bajada = Math.max(0, dy);                 // solo hacia abajo
+    bajada = Math.max(0, dy);                         // solo hacia abajo
     moverVisor(bajada, false);
+  } else if (direccion === "horizontal" && fotosVisibles.length > 1) {
+    deslizado = dx;
+    arrastrarHorizontal(dx);
+    const dt = e.timeStamp - ultimoT;
+    if (dt > 0) velocidad = 0.8 * ((x - ultimoX) / dt) + 0.2 * velocidad;
+    ultimoX = x;
+    ultimoT = e.timeStamp;
   }
 }, { passive: false });
 
-lightbox.addEventListener("touchend", e => {
+lightbox.addEventListener("touchend", () => {
   if (toqueX === null) return;
-  const dx = e.changedTouches[0].clientX - toqueX;
   toqueX = toqueY = null;
 
-  if (direccion === "horizontal" && Math.abs(dx) > 50) {
-    cambiar(dx < 0 ? 1 : -1);
+  if (direccion === "horizontal" && ladoVecina) {
+    // pasa si se arrastró más de un cuarto de pantalla, o si fue un deslizamiento rápido
+    const rapido = Math.abs(velocidad) > 0.35 && Math.sign(velocidad) === Math.sign(deslizado);
+    if (Math.abs(deslizado) > window.innerWidth * 0.25 || (rapido && Math.abs(deslizado) > 20)) {
+      completarPase(deslizado < 0 ? 1 : -1);
+    } else {
+      cancelarPase();
+    }
   } else if (direccion === "vertical") {
     if (bajada > 110) {
-      moverVisor(window.innerHeight, true);   // sale por abajo...
+      moverVisor(window.innerHeight, true);           // sale por abajo...
       setTimeout(() => { cerrarLightbox(); moverVisor(0, false); }, 250);  // ...y se cierra
     } else {
-      moverVisor(0, true);                    // no llegó: vuelve a su lugar
+      moverVisor(0, true);                            // no llegó: vuelve a su lugar
     }
   }
   direccion = null;
 }, { passive: true });
 
-// Si el sistema interrumpe el gesto (llamada, notificación...), la foto vuelve a su lugar
+// Si el sistema interrumpe el gesto (llamada, notificación...), todo vuelve a su lugar
 lightbox.addEventListener("touchcancel", () => {
-  toqueX = toqueY = direccion = null;
-  moverVisor(0, true);
+  toqueX = toqueY = null;
+  if (direccion === "horizontal") cancelarPase();
+  else moverVisor(0, true);
+  direccion = null;
 });
 
 /* ---------- 4. Menú del celular ---------- */
