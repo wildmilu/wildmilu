@@ -22,7 +22,7 @@ y no necesitás saber nada de programación.
 3. Completá:
    - **Título:** el nombre que querés que se vea (ej: *"Zorzal al amanecer"*)
    - **Especie:** el nombre del bicho (si no lo sabés, dejalo vacío)
-   - **Categoría:** Jardín, Bosque, Humedales, Rapaces, Pastizal u Otra fauna
+   - **Clase:** Aves, Mamíferos, Reptiles, Anfibios, Peces o Invertebrados
    - **Lugar** y **Fecha** (ej: *"Enero 2026"*)
    - **Descripción:** una frase o anécdota (opcional)
 4. Tocá **Guardar**. La foto aparece primera en la lista con la etiqueta *nueva*.

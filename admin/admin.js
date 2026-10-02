@@ -22,7 +22,8 @@ const CONFIG = {
   calidad: 0.85,      // calidad JPEG (0 a 1)
 };
 
-const CATEGORIAS = ["Jardín", "Bosque", "Humedales", "Rapaces", "Pastizal", "Otra fauna"];
+// Clases de animales (el filtro de la galería). Si agregás una, sumala también en js/main.js
+const CATEGORIAS = ["Aves", "Mamíferos", "Reptiles", "Anfibios", "Peces", "Invertebrados"];
 const CLAVE_TOKEN = "wildmilu-token";
 const API = "https://api.github.com";
 
@@ -310,7 +311,7 @@ function borrar(i) {
 function abrirFormulario(i = -1) {
   editando = i;
   imagenElegida = null;
-  const foto = i >= 0 ? fotos[i] : { titulo: "", especie: "", categoria: "Otra fauna", lugar: "", fecha: "", descripcion: "" };
+  const foto = i >= 0 ? fotos[i] : { titulo: "", especie: "", categoria: "Aves", lugar: "", fecha: "", descripcion: "" };
 
   $("dialogo-titulo").textContent = i >= 0 ? "Editar foto" : "Agregar foto";
   $("archivo-label").textContent = i >= 0 ? "Cambiar foto" : "Elegir foto";
@@ -322,7 +323,7 @@ function abrirFormulario(i = -1) {
 
   $("f-titulo").value = foto.titulo || "";
   $("f-especie").value = foto.especie || "";
-  $("f-categoria").value = CATEGORIAS.includes(foto.categoria) ? foto.categoria : "Otra fauna";
+  $("f-categoria").value = CATEGORIAS.includes(foto.categoria) ? foto.categoria : "Aves";
   $("f-lugar").value = foto.lugar || "";
   $("f-fecha").value = foto.fecha || "";
   $("f-descripcion").value = foto.descripcion || "";

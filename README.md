@@ -47,8 +47,9 @@ Y entrá a http://localhost:8000 (el panel en http://localhost:8000/admin/).
   versión de 800px de ancho con el mismo nombre a `images/thumbs/`) y `git push`.
   Si falta la miniatura, la galería usa la foto grande.
 
-**Categorías:** Jardín · Bosque · Humedales · Rapaces · Pastizal · Otra fauna
-(se cambian en `admin/admin.js`, constante `CATEGORIAS`).
+**Clases (filtro de la galería):** Aves · Mamíferos · Reptiles · Anfibios · Peces · Invertebrados
+(se cambian en `admin/admin.js` → `CATEGORIAS` y en `js/main.js` → `CLASES`).
+La galería solo muestra los filtros de las clases que tienen fotos.
 
 ## 🎨 Personalizar
 Colores/tipografías: `:root` al inicio de `css/styles.css`.

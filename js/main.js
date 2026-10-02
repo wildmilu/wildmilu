@@ -9,6 +9,9 @@
 const galeria   = document.getElementById("galeria");
 const filtrosEl = document.getElementById("filtros");
 
+// Orden fijo de los filtros (solo se muestran las clases que tienen fotos)
+const CLASES = ["Aves", "Mamíferos", "Reptiles", "Anfibios", "Peces", "Invertebrados"];
+
 let FOTOS = [];
 let fotosVisibles = [];
 
@@ -51,7 +54,10 @@ fetch("fotos.json?" + Date.now())          // el ?... evita caché vieja
 /* ---------- 1. Construir botones de filtro dinámicamente ---------- */
 function construirFiltros() {
   filtrosEl.innerHTML = "";
-  const categorias = ["Todas", ...new Set(FOTOS.map(f => f.categoria).filter(Boolean))];
+  const presentes = new Set(FOTOS.map(f => f.categoria).filter(Boolean));
+  const categorias = ["Todas",
+    ...CLASES.filter(c => presentes.has(c)),
+    ...[...presentes].filter(c => !CLASES.includes(c))];   // por si aparece alguna otra
   categorias.forEach((cat, i) => {
     const btn = document.createElement("button");
     btn.className = "filtro" + (i === 0 ? " activo" : "");

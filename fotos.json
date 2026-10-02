@@ -4,7 +4,7 @@
       "src": "images/benteveo.jpg",
       "titulo": "Benteveo",
       "especie": "Pitangus sulphuratus",
-      "categoria": "Jardín",
+      "categoria": "Aves",
       "lugar": "Anisacate",
       "fecha": "Septiembre 2026",
       "descripcion": ""
@@ -13,7 +13,7 @@
       "src": "images/carpincho.jpg",
       "titulo": "Carpincho",
       "especie": "Carpincho",
-      "categoria": "Otra fauna",
+      "categoria": "Mamíferos",
       "lugar": "Esteros del Ibera",
       "fecha": "Enero 2024",
       "descripcion": ""
@@ -22,7 +22,7 @@
       "src": "images/picaflor-cometa.jpg",
       "titulo": "Picaflor cometa en vuelo",
       "especie": "Sappho sparganurus",
-      "categoria": "Jardín",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "Con su larga cola dorada, libando entre las salvias rojas."
@@ -31,7 +31,7 @@
       "src": "images/cardenal.jpg",
       "titulo": "Cardenal copetón",
       "especie": "Paroaria coronata",
-      "categoria": "Bosque",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "Ese copete rojo imposible de no mirar, entre las ramas de un algarrobo."
@@ -40,7 +40,7 @@
       "src": "images/chiflon.jpg",
       "titulo": "Chiflón al sol",
       "especie": "Syrigma sibilatrix",
-      "categoria": "Humedales",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "La garza silbadora, con su antifaz celeste y pico rosado."
@@ -49,7 +49,7 @@
       "src": "images/chimango.jpg",
       "titulo": "Chimango cantando",
       "especie": "Milvago chimango",
-      "categoria": "Rapaces",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "Posado en lo alto, dando su clásico chillido."
@@ -58,7 +58,7 @@
       "src": "images/taguato.jpg",
       "titulo": "Taguató vigilando",
       "especie": "Rupornis magnirostris",
-      "categoria": "Rapaces",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "El gavilán común, atento desde la punta de una rama seca."
@@ -67,7 +67,7 @@
       "src": "images/lechucita.jpg",
       "titulo": "Lechucita de las vizcacheras",
       "especie": "Athene cunicularia",
-      "categoria": "Rapaces",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "Ojos enormes y dorados que lo ven todo al atardecer."
@@ -76,7 +76,7 @@
       "src": "images/nandu.jpg",
       "titulo": "Ñandú en el pastizal",
       "especie": "Rhea americana",
-      "categoria": "Pastizal",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "El ave corredora más grande de Sudamérica, entre los pastos."
@@ -85,7 +85,7 @@
       "src": "images/golondrinas.jpg",
       "titulo": "Golondrinas al sol",
       "especie": "Pygochelidon cyanoleuca",
-      "categoria": "Jardín",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "Dos golondrinas descansando en la rama de un sauce."
@@ -94,7 +94,7 @@
       "src": "images/durmili.jpg",
       "titulo": "Durmilí en pareja",
       "especie": "Nystalus maculatus",
-      "categoria": "Bosque",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "Quietos y tranquilos, fieles a su fama de dormilones."
@@ -103,7 +103,7 @@
       "src": "images/tiranidos.jpg",
       "titulo": "Pareja de tiránidos",
       "especie": "(a confirmar)",
-      "categoria": "Bosque",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "Dos jóvenes esperando en una rama con líquenes."
@@ -112,7 +112,7 @@
       "src": "images/zorzal-americano.jpg",
       "titulo": "Zorzal americano",
       "especie": "Turdus migratorius",
-      "categoria": "Jardín",
+      "categoria": "Aves",
       "lugar": "",
       "fecha": "",
       "descripcion": "Su pecho anaranjado se destaca sobre el musgo verde."
@@ -121,7 +121,7 @@
       "src": "images/yacare.jpg",
       "titulo": "Yacaré al acecho",
       "especie": "Caiman sp.",
-      "categoria": "Otra fauna",
+      "categoria": "Reptiles",
       "lugar": "",
       "fecha": "",
       "descripcion": "Sólo los ojos asoman entre los camalotes."
@@ -130,7 +130,7 @@
       "src": "images/lagartija.jpg",
       "titulo": "Lagartija verde al sol",
       "especie": "Teius sp.",
-      "categoria": "Otra fauna",
+      "categoria": "Reptiles",
       "lugar": "",
       "fecha": "",
       "descripcion": "Su verde eléctrico brilla tomando sol sobre una roca."
@@ -139,7 +139,7 @@
       "src": "images/zorro.jpg",
       "titulo": "Zorro dormido",
       "especie": "Lycalopex sp.",
-      "categoria": "Otra fauna",
+      "categoria": "Mamíferos",
       "lugar": "",
       "fecha": "",
       "descripcion": "Enroscado y en calma, durmiendo sobre la piedra."
@@ -148,7 +148,7 @@
       "src": "images/mono-caraya.jpg",
       "titulo": "Mono carayá",
       "especie": "Alouatta caraya",
-      "categoria": "Otra fauna",
+      "categoria": "Mamíferos",
       "lugar": "",
       "fecha": "",
       "descripcion": "Aullador, observando desde las ramas de la selva."
@@ -157,13 +157,13 @@
       "src": "images/vaca-highland.jpg",
       "titulo": "Vaca Highland",
       "especie": "Bos taurus (raza Highland)",
-      "categoria": "Otra fauna",
+      "categoria": "Mamíferos",
       "lugar": "",
       "fecha": "",
       "descripcion": "El clásico flequillo de las vacas peludas de las tierras altas."
     },
     {
-      "categoria": "Otra fauna",
+      "categoria": "Aves",
       "src": "images/tacuarita1.jpg",
       "titulo": "Tacuarita",
       "especie": "Tacuarita",
