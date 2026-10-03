@@ -94,8 +94,13 @@ img { display: block; max-width: 100%; }
     linear-gradient(rgba(38,34,29,0.45), rgba(38,34,29,0.55)),
     url("../images/picaflor-cometa.jpg") center/cover no-repeat;
 }
-/* En pantallas verticales, encuadrar la cabeza del picaflor (no solo la cola) */
-@media (max-aspect-ratio: 1/1) { .hero { background-position: 22% center; } }
+/* En pantallas verticales: versión recortada (cabeza del picaflor) y más liviana */
+@media (max-aspect-ratio: 1/1) {
+  .hero {
+    background-image: linear-gradient(rgba(38,34,29,0.45), rgba(38,34,29,0.55)), url("../images/portada-movil.jpg");
+    background-position: center;
+  }
+}
 .hero__kicker {
   text-transform: uppercase; letter-spacing: 4px;
   font-size: 0.8rem; margin-bottom: 1rem; opacity: 0.9;
@@ -140,6 +145,7 @@ img { display: block; max-width: 100%; }
   font-family: var(--fuente-texto); font-size: 0.9rem; transition: all 0.2s;
 }
 .filtro:hover { border-color: var(--verde-hoja); }
+.filtro__n { margin-left: 0.4em; font-size: 0.8em; opacity: 0.55; font-variant-numeric: tabular-nums; }
 .filtro.activo {
   background: var(--verde-bosque); color: #fff; border-color: var(--verde-bosque);
 }
@@ -156,7 +162,10 @@ img { display: block; max-width: 100%; }
 }
 .card:hover { transform: translateY(-4px); }
 .card:focus-visible { outline: 3px solid var(--terracota); outline-offset: 3px; }
-.card img { display: block; width: 100%; height: auto; transition: transform 0.4s; }
+.card img { display: block; width: 100%; height: auto; opacity: 0; transition: transform 0.4s, opacity 0.5s ease; }
+.card img.lista { opacity: 1; }   /* fundido suave al terminar de cargar (el fondo es el color de la foto) */
+.galeria { transition: opacity 0.18s ease; }
+.galeria.cambiando { opacity: 0; }
 .card:hover img { transform: scale(1.05); }
 .card__titulo, .card__especie { display: block; }
 .card__info {
@@ -268,3 +277,39 @@ img { display: block; max-width: 100%; }
 /* Foco visible solo al usar el teclado (no al tocar o hacer clic) */
 a:focus-visible, button:focus-visible { outline: 3px solid var(--terracota); outline-offset: 3px; border-radius: 6px; }
 .lightbox button:focus-visible { outline-color: var(--crema); }
+
+/* ---------- VISOR: abrir/cerrar animado y zoom ---------- */
+.lightbox { transition: background-color 320ms ease; }
+.lightbox.transicion { background-color: rgba(20, 18, 15, 0); }
+.lightbox.desvaneciendo { opacity: 0; }
+.lightbox__cerrar, .lightbox__nav { z-index: 3; transition: opacity 0.25s ease; }
+.lightbox.transicion .lightbox__meta,
+.lightbox.transicion .lightbox__nav,
+.lightbox.transicion .lightbox__cerrar { opacity: 0; }
+
+.lightbox__img {
+  position: relative; z-index: 1; transform-origin: center; will-change: transform;
+  cursor: zoom-in; user-select: none; -webkit-user-select: none; -webkit-user-drag: none;
+}
+.lightbox.ampliado .lightbox__img { cursor: grab; }
+.lightbox.moviendo .lightbox__img { cursor: grabbing; }
+.lightbox.ampliado .lightbox__meta,
+.lightbox.ampliado .lightbox__nav { opacity: 0; pointer-events: none; }
+@media (hover: none) { .lightbox__img { cursor: default; } }
+
+/* ---------- VOLVER ARRIBA ---------- */
+.arriba {
+  position: fixed; z-index: 40; right: 1rem; bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer;
+  display: grid; place-items: center;
+  background: var(--verde-bosque); color: var(--crema); box-shadow: var(--sombra);
+  opacity: 0; transform: translateY(12px); pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.arriba svg { width: 22px; height: 22px; }
+.arriba.visible { opacity: 1; transform: none; pointer-events: auto; }
+
+/* Quien pidió "reducir movimiento" en su sistema: sin animaciones */
+@media (prefers-reduced-motion: reduce) {
+  .card img, .galeria, .lightbox, .lightbox__meta, .arriba { transition: none !important; }
+}

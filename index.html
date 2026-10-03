@@ -27,7 +27,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/styles.css?v=4">
+  <link rel="stylesheet" href="css/styles.css?v=5">
+  <!-- Portada: en el celular baja una versión recortada y más liviana -->
+  <link rel="preload" as="image" href="images/portada-movil.jpg" media="(max-aspect-ratio: 1/1)">
+  <link rel="preload" as="image" href="images/picaflor-cometa.jpg" media="(min-aspect-ratio: 1/1)">
 
   <!-- Ícono de la pestaña (provisorio, hasta tener el logo definitivo) -->
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -141,10 +144,14 @@
 
   <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 
+  <button class="arriba" id="arriba" type="button" aria-label="Volver al inicio de la galería">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0-6 6m6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
   <!-- ⚠️ IMPORTANTE: solo main.js.
        NO debe haber ninguna línea con "js/data.js": ese era el archivo
        de la versión 1. Ahora las fotos se leen desde fotos.json. -->
-  <script src="js/main.js?v=7"></script>
+  <script src="js/main.js?v=11"></script>
 
   <!-- Estadísticas de visitas (GoatCounter: gratis, sin cookies) -->
   <script data-goatcounter="https://wildmilu.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>

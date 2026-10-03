@@ -239,6 +239,14 @@ async function procesarImagen(archivo) {
   // Si ya era un JPEG chico, recomprimirlo solo lo empeora: va el original.
   if (escala === 1 && archivo.type === "image/jpeg" && archivo.size <= blob.size) blob = archivo;
 
+  // color promedio: la galería lo muestra de fondo mientras la foto carga
+  const lienzo = document.createElement("canvas");
+  lienzo.width = lienzo.height = 1;
+  const ctx = lienzo.getContext("2d");
+  ctx.drawImage(img, 0, 0, 1, 1);
+  const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+  const color = "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
+
   const escalaMini = Math.min(1, CONFIG.anchoMiniatura / w);
   const mini = await aJpeg(img, Math.round(w * escalaMini), Math.round(h * escalaMini));
 
@@ -249,6 +257,7 @@ async function procesarImagen(archivo) {
     peso: blob.size,
     ancho,
     alto,
+    color,
   };
 }
 
@@ -458,6 +467,7 @@ function guardarFormulario(e) {
 
   // Tamaño de la foto: la galería lo usa para reservar el lugar y que nada salte al cargar
   if (anterior.ancho && anterior.alto) { datos.ancho = anterior.ancho; datos.alto = anterior.alto; }
+  if (anterior.color) datos.color = anterior.color;
 
   if (imagenElegida) {
     const ruta = rutaNueva(titulo);
@@ -466,6 +476,7 @@ function guardarFormulario(e) {
     datos.src = ruta;
     datos.ancho = imagenElegida.ancho;
     datos.alto = imagenElegida.alto;
+    datos.color = imagenElegida.color;
   }
 
   if (editando >= 0) {
@@ -525,7 +536,7 @@ async function agregarVarias() {
       imagenesNuevas.set(ruta, { base64: imagen.base64, miniatura: imagen.miniatura });
       vistasPrevias.set(ruta, imagen.url);
       nuevas.push({ src: ruta, titulo, especie: "", categoria: "Aves", lugar: "", fecha: "", descripcion: "",
-                    ancho: imagen.ancho, alto: imagen.alto });
+                    ancho: imagen.ancho, alto: imagen.alto, color: imagen.color });
       cambios.push(`Agregar foto "${titulo || archivo.name}"`);
     } catch {
       fallaron.push(archivo.name);

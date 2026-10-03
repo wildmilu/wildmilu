@@ -88,7 +88,14 @@ function construirFiltros() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "filtro" + (i === 0 ? " activo" : "");
-    btn.textContent = cat;
+    const cantidad = cat === "Todas" ? FOTOS.length : FOTOS.filter(f => f.categoria === cat).length;
+    const nombre = document.createElement("span");
+    nombre.textContent = cat;
+    const numero = document.createElement("span");
+    numero.className = "filtro__n";
+    numero.textContent = cantidad;
+    btn.append(nombre, numero);
+    btn.setAttribute("aria-label", `${cat} (${cantidad} ${cantidad === 1 ? "foto" : "fotos"})`);
     btn.setAttribute("aria-pressed", i === 0);
     btn.addEventListener("click", () => {
       document.querySelectorAll(".filtro").forEach(b => {
@@ -103,9 +110,17 @@ function construirFiltros() {
   });
 }
 
+let filtrando = null;
 function filtrar(cat) {
   fotosVisibles = cat === "Todas" ? [...FOTOS] : FOTOS.filter(f => f.categoria === cat);
-  renderizar();
+  if (sinMovimiento.matches) { renderizar(); return; }
+  // la galería se desvanece, cambia y vuelve a aparecer
+  clearTimeout(filtrando);
+  galeria.classList.add("cambiando");
+  filtrando = setTimeout(() => {
+    renderizar();
+    requestAnimationFrame(() => galeria.classList.remove("cambiando"));
+  }, 180);
 }
 
 /* ---------- 2. Galería ---------- */
@@ -126,6 +141,8 @@ function crearTarjeta(foto, indice) {
   const card = document.createElement("button");
   card.type = "button";
   card.className = "card";
+  card.dataset.id = idFoto(foto);
+  if (foto.color) card.style.backgroundColor = foto.color;   // color de la foto mientras carga
   card.setAttribute("aria-label", `Ver foto: ${foto.titulo || "sin título"}`);
 
   const img = document.createElement("img");
@@ -135,6 +152,8 @@ function crearTarjeta(foto, indice) {
   img.decoding = "async";
   if (foto.ancho && foto.alto) { img.width = foto.ancho; img.height = foto.alto; }
   img.style.aspectRatio = `1 / ${proporcion(foto)}`;
+  // aparece con un fundido suave cuando termina de cargar
+  img.addEventListener("load", () => img.classList.add("lista"), { once: true });
 
   // Si falta la miniatura se usa la foto grande; si tampoco está
   // (ruta mal escrita, archivo borrado) se oculta la tarjeta.
@@ -157,6 +176,7 @@ function crearTarjeta(foto, indice) {
 
   card.append(img, info);
   card.addEventListener("click", () => abrirLightbox(indice));
+  if (img.complete && img.naturalWidth) img.classList.add("lista");   // ya estaba en caché
   return card;
 }
 
@@ -196,24 +216,100 @@ const lbContador  = document.getElementById("lb-contador");
 const lbCerrar    = document.getElementById("lb-cerrar");
 const lbCompartir = document.getElementById("lb-compartir");
 const lbContenido = document.querySelector(".lightbox__contenido");
+const lbMeta      = document.querySelector(".lightbox__meta");
+const lbVecina    = document.getElementById("lb-vecina");
+
+const DURACION = 320;                              // ms de las animaciones
+const CURVA = "cubic-bezier(0.22, 0.8, 0.24, 1)";
+const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
+const pausa = ms => new Promise(r => setTimeout(r, ms));
+
+// La posición de la página la maneja el sitio: así, al cerrar el visor (que usa
+// el historial), el navegador no la pisa y la foto vuelve a SU tarjeta.
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
 let indiceActual = 0;
 let focoAnterior = null;      // para devolver el foco a la tarjeta al cerrar (teclado)
 let entradaPropia = false;    // true si el visor agregó una entrada al historial
+let cerrando = false;         // animación de cierre en curso
+let animando = false;         // animación de pase en curso
+let imagenOculta = null;      // miniatura de la galería escondida mientras "vuela" al visor
 
-const visorAbierto = () => lightbox.classList.contains("abierto");
+const visorAbierto = () => lightbox.classList.contains("abierto") && !cerrando;
 
 // ¿Se está usando el teclado? El foco solo se mueve en ese caso, así con el
 // dedo o el mouse no aparecen recuadros de foco.
 let usandoTeclado = false;
+let ultimoPuntero = "mouse";
 document.addEventListener("keydown", e => { if (e.key === "Tab" || e.key === "Enter" || e.key === " ") usandoTeclado = true; });
-document.addEventListener("pointerdown", () => { usandoTeclado = false; });
+document.addEventListener("pointerdown", e => { usandoTeclado = false; ultimoPuntero = e.pointerType; });
 
+/* ---- Tamaño y posición de una foto dentro del visor ----
+   Se calcula con el ancho/alto de fotos.json, así se sabe dónde va a quedar
+   antes de que cargue (lo usan las animaciones). */
+function tamanoEnVisor(foto) {
+  const maxAncho = lbContenido.clientWidth || window.innerWidth;
+  const maxAlto = window.innerHeight * 0.72;
+  const prop = proporcion(foto);
+  let ancho = Math.min(maxAncho, foto.ancho || maxAncho), alto = ancho * prop;
+  if (alto > maxAlto) { alto = maxAlto; ancho = alto / prop; }
+  return { ancho, alto };
+}
+
+// Rectángulo en pantalla que ocuparía la foto (centrada junto con sus textos)
+function rectEnVisor(foto) {
+  const { ancho, alto } = tamanoEnVisor(foto);
+  const estilo = getComputedStyle(lightbox);
+  const arriba = parseFloat(estilo.paddingTop), abajo = parseFloat(estilo.paddingBottom);
+  const separacion = parseFloat(getComputedStyle(lbContenido).rowGap) || 0;
+  const disponible = window.innerHeight - arriba - abajo;
+  const marco = lbContenido.getBoundingClientRect();
+  return {
+    left: marco.left + (marco.width - ancho) / 2,
+    top: arriba + (disponible - (alto + separacion + lbMeta.offsetHeight)) / 2,
+    width: ancho, height: alto,
+  };
+}
+
+function ajustarTamano() {
+  const foto = fotosVisibles[indiceActual];
+  if (!foto) return;
+  const { ancho, alto } = tamanoEnVisor(foto);
+  lbImg.style.width = ancho + "px";
+  lbImg.style.height = alto + "px";
+}
+window.addEventListener("resize", () => { if (visorAbierto()) { reiniciarZoom(false); ajustarTamano(); } });
+
+// Transformación que lleva el rectángulo "desde" a ocupar el rectángulo "hasta"
+function transformacion(desde, hasta) {
+  const dx = (hasta.left + hasta.width / 2) - (desde.left + desde.width / 2);
+  const dy = (hasta.top + hasta.height / 2) - (desde.top + desde.height / 2);
+  return `translate(${dx}px, ${dy}px) scale(${hasta.width / desde.width})`;
+}
+
+function miniaturaEnGaleria(foto) {
+  return galeria.querySelector(`.card[data-id="${CSS.escape(idFoto(foto))}"] img`);
+}
+
+// Se esconde la tarjeta entera (no solo la foto) mientras su foto está en el visor
+function esconderTarjeta(img) {
+  imagenOculta = img.closest(".card");
+  imagenOculta.style.visibility = "hidden";
+}
+
+function mostrarMiniatura() {
+  if (imagenOculta) imagenOculta.style.visibility = "";
+  imagenOculta = null;
+}
+
+/* ---- Abrir: la foto "crece" desde su miniatura ---- */
 function abrirLightbox(indice, { desdeLink = false } = {}) {
   indiceActual = indice;
   focoAnterior = document.activeElement;
-  mostrarFoto();
-  lightbox.classList.add("abierto");
+  cerrando = false;
+  lightbox.classList.add("abierto", "transicion");      // fondo y textos arrancan invisibles
   document.body.style.overflow = "hidden";
+  mostrarFoto();
   // Link propio de la foto (#foto=benteveo). Se agrega al historial para que
   // el botón "atrás" del celular cierre el visor en vez de salir del sitio.
   if (!desdeLink) {
@@ -221,18 +317,72 @@ function abrirLightbox(indice, { desdeLink = false } = {}) {
     entradaPropia = true;
   }
   if (usandoTeclado) lbCerrar.focus({ preventScroll: true });
+
+  const origen = !desdeLink && !sinMovimiento.matches && miniaturaEnGaleria(fotosVisibles[indice]);
+  if (origen) {
+    const desde = origen.getBoundingClientRect();
+    const hasta = lbImg.getBoundingClientRect();
+    esconderTarjeta(origen);
+    lbImg.style.transition = "none";
+    lbImg.style.transform = transformacion(hasta, desde);
+  }
+  lightbox.getBoundingClientRect();                     // fija el punto de partida
+  if (origen) {
+    lbImg.style.transition = `transform ${DURACION}ms ${CURVA}`;
+    lbImg.style.transform = "";
+  }
+  lightbox.classList.remove("transicion");              // fondo y textos aparecen
 }
 
-function ocultarLightbox() {
+/* ---- Cerrar: la foto vuelve a su lugar en la galería ---- */
+async function ocultarLightbox() {
+  if (!lightbox.classList.contains("abierto") || cerrando) return;
+  cerrando = true;
+  const foto = fotosVisibles[indiceActual];
+  let destino = foto && !sinMovimiento.matches ? miniaturaEnGaleria(foto) : null;
+
+  if (destino) {
+    // si la foto quedó fuera de pantalla (se pasaron varias), se acomoda la galería
+    const r = destino.getBoundingClientRect();
+    if (r.bottom < 60 || r.top > window.innerHeight - 20) {
+      // al instante (no "suave"): la foto tiene que volar a donde la tarjeta YA está
+      window.scrollBy({ top: r.top + r.height / 2 - window.innerHeight / 2, behavior: "instant" });
+    }
+    const inicio = lbImg.getBoundingClientRect();       // donde se ve ahora (con arrastre o zoom)
+    reiniciarZoom(false);
+    lbContenido.style.transition = "none";
+    lbContenido.style.transform = "";
+    lbVecina.hidden = true;
+    const base = lbImg.getBoundingClientRect();
+    lbImg.style.transition = "none";
+    lbImg.style.transform = transformacion(base, inicio);  // misma posición, sin salto
+    lightbox.getBoundingClientRect();
+    mostrarMiniatura();
+    esconderTarjeta(destino);
+    lbImg.style.transition = `transform ${DURACION}ms ${CURVA}`;
+    lbImg.style.transform = transformacion(base, destino.getBoundingClientRect());
+  }
+  lightbox.style.transition = `background-color ${DURACION}ms ease, opacity ${DURACION}ms ease`;
+  lightbox.style.backgroundColor = "rgba(20, 18, 15, 0)";
+  lbCerrar.style.opacity = "0";
+  lightbox.classList.add("transicion", destino ? "volando" : "desvaneciendo");
+  await pausa(destino ? DURACION : 200);
+
+  lightbox.classList.remove("abierto", "transicion", "volando", "desvaneciendo", "ampliado");
+  for (const el of [lightbox, lbImg, lbContenido, lbCerrar]) { el.style.transition = ""; el.style.transform = ""; }
+  lightbox.style.backgroundColor = "";
+  lbCerrar.style.opacity = "";
   lbVecina.hidden = true;
   ladoVecina = 0;
-  lightbox.classList.remove("abierto");
+  mostrarMiniatura();
   document.body.style.overflow = "";
+  cerrando = false;
   if (usandoTeclado && focoAnterior && document.contains(focoAnterior)) focoAnterior.focus({ preventScroll: true });
 }
 
 function cerrarLightbox() {
   if (!visorAbierto()) return;
+  if (ampliada()) { reiniciarZoom(true); return; }    // con zoom, primero se sale del zoom
   ocultarLightbox();
   if (entradaPropia) {
     entradaPropia = false;
@@ -245,7 +395,7 @@ function cerrarLightbox() {
 window.addEventListener("popstate", () => {
   const id = idDesdeDireccion();
   if (!id && visorAbierto()) { entradaPropia = false; ocultarLightbox(); }
-  else if (id && !visorAbierto()) abrirDesdeLink();
+  else if (id && !lightbox.classList.contains("abierto")) abrirDesdeLink();
 });
 
 function idDesdeDireccion() {
@@ -264,6 +414,8 @@ function abrirDesdeLink() {
 function mostrarFoto() {
   const foto = fotosVisibles[indiceActual];
   if (!foto) return;
+  reiniciarZoom(false);
+  ajustarTamano();
   // Primero la miniatura (ya está en caché, aparece al instante)
   // y en cuanto baja la foto grande, se reemplaza.
   const grande = normalizarRuta(foto.src);
@@ -277,8 +429,12 @@ function mostrarFoto() {
   const partes = [foto.lugar, foto.fecha].filter(Boolean).join(" · ");
   lbDetalle.textContent = [partes, foto.descripcion].filter(Boolean).join(" — ");
   lbContador.textContent = `${indiceActual + 1} / ${fotosVisibles.length}`;
-  if (visorAbierto()) history.replaceState(history.state, "", "#foto=" + idFoto(foto));
   precargarVecinas();
+}
+
+// Al pasar a otra foto, la dirección muestra la nueva (sin agregar entradas al historial)
+function actualizarDireccion() {
+  history.replaceState(history.state, "", "#foto=" + idFoto(fotosVisibles[indiceActual]));
 }
 
 /* Baja por adelantado la foto siguiente y la anterior: al deslizar aparecen al instante */
@@ -323,7 +479,7 @@ lbCompartir.addEventListener("click", async () => {
 lbCerrar.addEventListener("click", cerrarLightbox);
 document.getElementById("lb-prev").addEventListener("click", () => cambiar(-1));
 document.getElementById("lb-next").addEventListener("click", () => cambiar(1));
-lightbox.addEventListener("click", e => { if (e.target === lightbox) cerrarLightbox(); });
+lightbox.addEventListener("click", e => { if (e.target === lightbox && !ampliada()) cerrarLightbox(); });
 
 document.addEventListener("keydown", e => {
   if (!visorAbierto()) return;
@@ -340,15 +496,96 @@ document.addEventListener("keydown", e => {
   }
 });
 
+/* ---------- Zoom ----------
+   Celular: pellizcar, o tocar dos veces. Con zoom, un dedo mueve la foto.
+   Compu: clic para ampliar/achicar, arrastrar para moverse, o pellizcar el trackpad. */
+const ZOOM_MAX = 4, ZOOM_TOQUE = 2.5;
+let zoom = { s: 1, x: 0, y: 0 };
+const ampliada = () => zoom.s > 1.01;
+
+function aplicarZoom(animado) {
+  lbImg.style.transition = animado ? `transform 0.28s ${CURVA}` : "none";
+  lbImg.style.transform = zoom.s !== 1 || zoom.x || zoom.y ? `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.s})` : "";
+  lightbox.classList.toggle("ampliado", ampliada());
+}
+
+function reiniciarZoom(animado) {
+  if (zoom.s === 1 && !zoom.x && !zoom.y) return;
+  zoom = { s: 1, x: 0, y: 0 };
+  aplicarZoom(animado);
+}
+
+// Centro y tamaño de la foto sin zoom, en pantalla
+function baseZoom() {
+  const r = lbImg.getBoundingClientRect();
+  return { cx: r.left + r.width / 2 - zoom.x, cy: r.top + r.height / 2 - zoom.y, w: r.width / zoom.s, h: r.height / zoom.s };
+}
+
+// Que la foto ampliada no deje bordes vacíos (y si entra, quede centrada en pantalla)
+function limitar(z, b) {
+  if (z.s <= 1.01) return { s: 1, x: 0, y: 0 };
+  const eje = (pos, tam, centro, vista) => {
+    const t = tam * z.s;
+    if (t <= vista) return vista / 2 - centro;
+    return Math.min(t / 2 - centro, Math.max(vista - centro - t / 2, pos));
+  };
+  return { s: z.s, x: eje(z.x, b.w, b.cx, window.innerWidth), y: eje(z.y, b.h, b.cy, window.innerHeight) };
+}
+
+// Zoom a escala s dejando quieto el punto (px, py) de la pantalla
+function zoomEn(s, px, py, b = baseZoom(), desde = zoom) {
+  const ux = (px - b.cx - desde.x) / desde.s, uy = (py - b.cy - desde.y) / desde.s;
+  return { s, x: px - b.cx - s * ux, y: py - b.cy - s * uy };
+}
+
+// Deja el zoom entre 1 y el máximo, sin bordes vacíos
+function normalizarZoom(animado) {
+  zoom = limitar({ ...zoom, s: Math.min(ZOOM_MAX, Math.max(1, zoom.s)) }, baseZoom());
+  aplicarZoom(animado);
+}
+
+function alternarZoom(px, py) {
+  if (ampliada()) { reiniciarZoom(true); return; }
+  const b = baseZoom();
+  zoom = limitar(zoomEn(ZOOM_TOQUE, px, py, b), b);
+  aplicarZoom(true);
+}
+
+// Compu: clic para ampliar, arrastrar para moverse
+let arrastreMouse = null;
+lbImg.addEventListener("pointerdown", e => {
+  if (e.pointerType !== "mouse" || e.button !== 0) return;
+  e.preventDefault();
+  arrastreMouse = { x: e.clientX, y: e.clientY, z: { ...zoom }, movio: false };
+});
+window.addEventListener("pointermove", e => {
+  if (!arrastreMouse || !ampliada()) return;
+  const dx = e.clientX - arrastreMouse.x, dy = e.clientY - arrastreMouse.y;
+  if (Math.hypot(dx, dy) > 4) arrastreMouse.movio = true;
+  zoom = limitar({ s: zoom.s, x: arrastreMouse.z.x + dx, y: arrastreMouse.z.y + dy }, baseZoom());
+  aplicarZoom(false);
+  lightbox.classList.add("moviendo");
+});
+window.addEventListener("pointerup", e => {
+  if (!arrastreMouse) return;
+  if (!arrastreMouse.movio && e.pointerType === "mouse") alternarZoom(e.clientX, e.clientY);
+  arrastreMouse = null;
+  lightbox.classList.remove("moviendo");
+});
+// Pellizcar en el trackpad (llega como rueda + Ctrl)
+lightbox.addEventListener("wheel", e => {
+  if (!e.ctrlKey || !visorAbierto()) return;
+  e.preventDefault();
+  const b = baseZoom();
+  const s = Math.min(ZOOM_MAX, Math.max(1, zoom.s * Math.exp(-e.deltaY * 0.01)));
+  zoom = limitar(zoomEn(s, e.clientX, e.clientY, b), b);
+  aplicarZoom(false);
+}, { passive: false });
+
 /* ---------- Pasar de foto con animación (carrusel) ----------
    La foto actual se corre y la vecina entra desde el costado. En el celular
    sigue al dedo; en la compu lo hacen las flechas y el teclado. */
-const lbVecina = document.getElementById("lb-vecina");
 const SEPARACION = 24;                       // espacio entre una foto y la otra
-const DURACION = 320;                        // ms de la animación
-const CURVA = "cubic-bezier(0.22, 0.8, 0.24, 1)";
-const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
-let animando = false;
 let ladoVecina = 0;                          // 1 = la siguiente (a la derecha), -1 = la anterior
 
 const indiceVecino = dir => (indiceActual + dir + fotosVisibles.length) % fotosVisibles.length;
@@ -358,25 +595,12 @@ const recorrido = () => window.innerWidth + SEPARACION;
 // (así al terminar la animación no hay ningún salto, aunque cambie la proporción)
 function prepararVecina(dir) {
   const foto = fotosVisibles[indiceVecino(dir)];
-  const marco = lbContenido.getBoundingClientRect();
-  const maxAlto = window.innerHeight * 0.72;
-  const prop = proporcion(foto);
-  let ancho = Math.min(marco.width, foto.ancho || marco.width), alto = ancho * prop;
-  if (alto > maxAlto) { alto = maxAlto; ancho = alto / prop; }
-  // el visor centra en vertical foto + textos: calculamos dónde arrancaría la foto
-  const estilo = getComputedStyle(lightbox);
-  const arriba = parseFloat(estilo.paddingTop), abajo = parseFloat(estilo.paddingBottom);
-  const separacion = parseFloat(getComputedStyle(lbContenido).rowGap) || 0;
-  const textos = lbContenido.querySelector(".lightbox__meta").offsetHeight;
-  const disponible = window.innerHeight - arriba - abajo;
-  const top = arriba + (disponible - (alto + separacion + textos)) / 2;
+  const r = rectEnVisor(foto);
   const grande = normalizarRuta(foto.src);
   lbVecina.src = precargadas.has(grande) ? grande : rutaMiniatura(foto.src);
   Object.assign(lbVecina.style, {
-    width: ancho + "px",
-    height: alto + "px",
-    left: marco.left + (marco.width - ancho) / 2 + "px",
-    top: top + "px",
+    width: r.width + "px", height: r.height + "px",
+    left: r.left + "px", top: r.top + "px",
     transition: "none",
     transform: `translateX(${dir * recorrido()}px)`,
   });
@@ -403,9 +627,11 @@ async function completarPase(dir) {
   animando = true;
   animar(lbContenido, `translateX(${-dir * recorrido()}px)`);
   animar(lbVecina, "translateX(0px)");
-  await new Promise(r => setTimeout(r, DURACION));
+  await pausa(DURACION);
+  if (!visorAbierto()) { animando = false; return; }
   indiceActual = indiceVecino(dir);
   mostrarFoto();
+  actualizarDireccion();
   lbContenido.style.transition = "none";
   lbContenido.style.transform = "";
   lbContenido.classList.add("entrando");             // el texto aparece suave
@@ -425,12 +651,14 @@ function cancelarPase() {
   setTimeout(() => { if (ladoVecina === lado && !animando) { lbVecina.hidden = true; ladoVecina = 0; } }, DURACION);
 }
 
-// Flechas y teclado (y donde se pida "pasar" sin arrastre)
+// Flechas y teclado
 function cambiar(dir) {
-  if (animando || fotosVisibles.length < 2) return;
+  if (animando || cerrando || fotosVisibles.length < 2) return;
+  reiniciarZoom(false);
   if (sinMovimiento.matches) {                      // accesibilidad: sin animación
     indiceActual = indiceVecino(dir);
     mostrarFoto();
+    actualizarDireccion();
     return;
   }
   prepararVecina(dir);
@@ -438,11 +666,14 @@ function cambiar(dir) {
   completarPase(dir);
 }
 
-/* Gestos en el celular:
+/* ---------- Gestos con el dedo ----------
    - izquierda/derecha → la foto sigue al dedo y entra la vecina
-   - hacia abajo → la foto sigue al dedo y, al soltar, se cierra el visor */
-let toqueX = null, toqueY = null, direccion = null, bajada = 0, deslizado = 0;
+   - hacia abajo → la foto sigue al dedo y, al soltar, vuelve a la galería
+   - pellizcar / tocar dos veces → zoom; con zoom, un dedo mueve la foto */
+let modo = null;                                    // "gesto" | "mover" | "pellizco"
+let toqueX = 0, toqueY = 0, toqueT = 0, direccion = null, bajada = 0, deslizado = 0;
 let ultimoX = 0, ultimoT = 0, velocidad = 0;        // px/ms, para pases rápidos y cortos
+let inicioZoom = null, ultimoToque = null;
 
 function moverVisor(dy, animado) {
   const t = animado ? "0.25s ease" : "0s";
@@ -456,22 +687,59 @@ function moverVisor(dy, animado) {
   lbCerrar.style.opacity = dy ? Math.max(0, 1 - dy / 60) : "";
 }
 
+const distancia = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+const medio = (a, b) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
+
+function empezarMover(t) {
+  modo = "mover";
+  toqueX = t.clientX; toqueY = t.clientY;
+  inicioZoom = { z: { ...zoom } };
+}
+
 lightbox.addEventListener("touchstart", e => {
-  if (e.touches.length > 1 || animando) return;      // pellizco o animación en curso: no tocar
-  if (e.target.closest("button")) return;            // tocar un botón (ej. Compartir) no es un gesto
-  toqueX = ultimoX = e.touches[0].clientX;
-  toqueY = e.touches[0].clientY;
+  if (animando || cerrando) return;
+  if (e.touches.length === 2) {                      // empieza un pellizco: se deja cualquier otro gesto
+    if (modo === "gesto" && direccion === "horizontal") cancelarPase();
+    if (modo === "gesto" && direccion === "vertical") moverVisor(0, true);
+    const [a, b] = e.touches;
+    modo = "pellizco";
+    inicioZoom = { d: distancia(a, b), m: medio(a, b), z: { ...zoom }, b: baseZoom() };
+    return;
+  }
+  if (e.touches.length > 2 || e.target.closest("button")) return;  // tocar un botón no es un gesto
+  const t = e.touches[0];
+  toqueT = e.timeStamp;
+  if (ampliada()) { empezarMover(t); return; }
+  modo = "gesto";
+  toqueX = ultimoX = t.clientX;
+  toqueY = t.clientY;
   ultimoT = e.timeStamp;
   direccion = null;
   bajada = deslizado = velocidad = 0;
 }, { passive: true });
 
 lightbox.addEventListener("touchmove", e => {
-  if (toqueX === null || e.touches.length > 1) return;
-  const x = e.touches[0].clientX;
-  const dx = x - toqueX;
-  const dy = e.touches[0].clientY - toqueY;
+  if (!modo) return;
   if (e.cancelable) e.preventDefault();               // que Safari no scrollee la página de atrás
+  if (modo === "pellizco" && e.touches.length === 2) {
+    const [a, b] = e.touches, m = medio(a, b);
+    const s = Math.min(ZOOM_MAX * 1.15, Math.max(0.85, inicioZoom.z.s * distancia(a, b) / inicioZoom.d));
+    const z = zoomEn(s, inicioZoom.m.x, inicioZoom.m.y, inicioZoom.b, inicioZoom.z);
+    zoom = { s, x: z.x + (m.x - inicioZoom.m.x), y: z.y + (m.y - inicioZoom.m.y) };
+    aplicarZoom(false);
+    return;
+  }
+  const t = e.touches[0];
+  if (modo === "ignorar") return;
+  if (modo === "mover") {
+    zoom = limitar({ s: zoom.s, x: inicioZoom.z.x + t.clientX - toqueX, y: inicioZoom.z.y + t.clientY - toqueY }, baseZoom());
+    aplicarZoom(false);
+    return;
+  }
+  if (modo !== "gesto") return;
+  const x = t.clientX;
+  const dx = x - toqueX;
+  const dy = t.clientY - toqueY;
   if (!direccion && Math.hypot(dx, dy) > 10) direccion = Math.abs(dy) > Math.abs(dx) ? "vertical" : "horizontal";
   if (direccion === "vertical") {
     bajada = Math.max(0, dy);                         // solo hacia abajo
@@ -486,9 +754,27 @@ lightbox.addEventListener("touchmove", e => {
   }
 }, { passive: false });
 
-lightbox.addEventListener("touchend", () => {
-  if (toqueX === null) return;
-  toqueX = toqueY = null;
+lightbox.addEventListener("touchend", e => {
+  if (!modo) return;
+  if (modo === "pellizco") {
+    normalizarZoom(true);
+    // levantó un dedo y la foto sigue ampliada: el otro dedo la mueve
+    if (e.touches.length === 1 && ampliada()) empezarMover(e.touches[0]);
+    else modo = e.touches.length ? "ignorar" : null;  // el dedo que queda no hace nada
+    return;
+  }
+  if (modo === "ignorar") { if (!e.touches.length) modo = null; return; }
+  const t = e.changedTouches[0];
+  const toqueCorto = e.timeStamp - toqueT < 250 && Math.hypot(t.clientX - toqueX, t.clientY - toqueY) < 10;
+  if (modo === "mover") {
+    if (e.touches.length) return;                     // todavía queda un dedo apoyado
+    modo = null;
+    normalizarZoom(true);
+    if (toqueCorto) dobleToque(t, e);
+    return;
+  }
+  modo = null;
+  if (toqueCorto) { dobleToque(t, e); direccion = null; return; }
 
   if (direccion === "horizontal" && ladoVecina) {
     // pasa si se arrastró más de un cuarto de pantalla, o si fue un deslizamiento rápido
@@ -499,22 +785,42 @@ lightbox.addEventListener("touchend", () => {
       cancelarPase();
     }
   } else if (direccion === "vertical") {
-    if (bajada > 110) {
-      moverVisor(window.innerHeight, true);           // sale por abajo...
-      setTimeout(() => { cerrarLightbox(); moverVisor(0, false); }, 250);  // ...y se cierra
-    } else {
-      moverVisor(0, true);                            // no llegó: vuelve a su lugar
-    }
+    if (bajada > 110) cerrarLightbox();               // vuelve volando a su lugar en la galería
+    else moverVisor(0, true);                         // no llegó: vuelve a su lugar
   }
   direccion = null;
 }, { passive: true });
 
+// Dos toques rápidos sobre la foto: ampliar ahí (o volver a ver la foto entera)
+function dobleToque(t, e) {
+  const previo = ultimoToque;
+  ultimoToque = { x: t.clientX, y: t.clientY, t: e.timeStamp };
+  if (!previo || e.timeStamp - previo.t > 300 || Math.hypot(t.clientX - previo.x, t.clientY - previo.y) > 40) return;
+  ultimoToque = null;
+  if (ampliada() || e.target === lbImg) alternarZoom(t.clientX, t.clientY);
+}
+
 // Si el sistema interrumpe el gesto (llamada, notificación...), todo vuelve a su lugar
 lightbox.addEventListener("touchcancel", () => {
-  toqueX = toqueY = null;
-  if (direccion === "horizontal") cancelarPase();
-  else moverVisor(0, true);
-  direccion = null;
+  if (modo === "gesto" && direccion === "horizontal") cancelarPase();
+  else if (modo === "gesto") moverVisor(0, true);
+  else if (modo === "pellizco") { zoom = limitar(zoom, baseZoom()); aplicarZoom(true); }
+  modo = direccion = null;
+});
+
+/* ---------- Volver arriba (aparece al bajar mucho por la galería) ---------- */
+const botonArriba = document.getElementById("arriba");
+let esperaScroll = null;
+window.addEventListener("scroll", () => {
+  if (esperaScroll) return;
+  esperaScroll = requestAnimationFrame(() => {
+    esperaScroll = null;
+    const inicio = document.getElementById("galeria-sec").offsetTop;
+    botonArriba.classList.toggle("visible", window.scrollY > inicio + window.innerHeight * 1.2);
+  });
+}, { passive: true });
+botonArriba.addEventListener("click", () => {
+  document.getElementById("galeria-sec").scrollIntoView({ behavior: sinMovimiento.matches ? "auto" : "smooth" });
 });
 
 /* ---------- 4. Menú del celular ---------- */

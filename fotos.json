@@ -9,7 +9,8 @@
       "fecha": "Septiembre 2026",
       "descripcion": "",
       "ancho": 2000,
-      "alto": 1360
+      "alto": 1360,
+      "color": "#b8a785"
     },
     {
       "src": "images/carpincho.jpg",
@@ -20,7 +21,8 @@
       "fecha": "Enero 2024",
       "descripcion": "",
       "ancho": 2000,
-      "alto": 1578
+      "alto": 1578,
+      "color": "#758039"
     },
     {
       "src": "images/picaflor-cometa.jpg",
@@ -31,7 +33,8 @@
       "fecha": "",
       "descripcion": "Con su larga cola dorada, libando entre las salvias rojas.",
       "ancho": 1600,
-      "alto": 846
+      "alto": 846,
+      "color": "#dad4af"
     },
     {
       "src": "images/cardenal.jpg",
@@ -42,7 +45,8 @@
       "fecha": "",
       "descripcion": "Ese copete rojo imposible de no mirar, entre las ramas de un algarrobo.",
       "ancho": 1600,
-      "alto": 1214
+      "alto": 1214,
+      "color": "#677066"
     },
     {
       "src": "images/chiflon.jpg",
@@ -53,7 +57,8 @@
       "fecha": "",
       "descripcion": "La garza silbadora, con su antifaz celeste y pico rosado.",
       "ancho": 1600,
-      "alto": 1235
+      "alto": 1235,
+      "color": "#6f7659"
     },
     {
       "src": "images/chimango.jpg",
@@ -64,7 +69,8 @@
       "fecha": "",
       "descripcion": "Posado en lo alto, dando su clásico chillido.",
       "ancho": 1600,
-      "alto": 1200
+      "alto": 1200,
+      "color": "#6b6544"
     },
     {
       "src": "images/taguato.jpg",
@@ -75,7 +81,8 @@
       "fecha": "",
       "descripcion": "El gavilán común, atento desde la punta de una rama seca.",
       "ancho": 1600,
-      "alto": 1123
+      "alto": 1123,
+      "color": "#919790"
     },
     {
       "src": "images/lechucita.jpg",
@@ -86,7 +93,8 @@
       "fecha": "",
       "descripcion": "Ojos enormes y dorados que lo ven todo al atardecer.",
       "ancho": 1284,
-      "alto": 1254
+      "alto": 1254,
+      "color": "#838071"
     },
     {
       "src": "images/nandu.jpg",
@@ -97,7 +105,8 @@
       "fecha": "",
       "descripcion": "El ave corredora más grande de Sudamérica, entre los pastos.",
       "ancho": 1600,
-      "alto": 1139
+      "alto": 1139,
+      "color": "#6c643f"
     },
     {
       "src": "images/golondrinas.jpg",
@@ -108,7 +117,8 @@
       "fecha": "",
       "descripcion": "Dos golondrinas descansando en la rama de un sauce.",
       "ancho": 1600,
-      "alto": 813
+      "alto": 813,
+      "color": "#858c8c"
     },
     {
       "src": "images/durmili.jpg",
@@ -119,7 +129,8 @@
       "fecha": "",
       "descripcion": "Quietos y tranquilos, fieles a su fama de dormilones.",
       "ancho": 1600,
-      "alto": 1058
+      "alto": 1058,
+      "color": "#a9aaa6"
     },
     {
       "src": "images/tiranidos.jpg",
@@ -130,7 +141,8 @@
       "fecha": "",
       "descripcion": "Dos jóvenes esperando en una rama con líquenes.",
       "ancho": 1600,
-      "alto": 1094
+      "alto": 1094,
+      "color": "#7d756a"
     },
     {
       "src": "images/zorzal-americano.jpg",
@@ -141,7 +153,8 @@
       "fecha": "",
       "descripcion": "Su pecho anaranjado se destaca sobre el musgo verde.",
       "ancho": 1600,
-      "alto": 1256
+      "alto": 1256,
+      "color": "#5d5f50"
     },
     {
       "src": "images/yacare.jpg",
@@ -152,7 +165,8 @@
       "fecha": "",
       "descripcion": "Sólo los ojos asoman entre los camalotes.",
       "ancho": 1600,
-      "alto": 1066
+      "alto": 1066,
+      "color": "#7c7976"
     },
     {
       "src": "images/lagartija.jpg",
@@ -163,7 +177,8 @@
       "fecha": "",
       "descripcion": "Su verde eléctrico brilla tomando sol sobre una roca.",
       "ancho": 1600,
-      "alto": 1265
+      "alto": 1265,
+      "color": "#5b542a"
     },
     {
       "src": "images/zorro.jpg",
@@ -174,7 +189,8 @@
       "fecha": "",
       "descripcion": "Enroscado y en calma, durmiendo sobre la piedra.",
       "ancho": 1600,
-      "alto": 1200
+      "alto": 1200,
+      "color": "#848484"
     },
     {
       "src": "images/mono-caraya.jpg",
@@ -185,7 +201,8 @@
       "fecha": "",
       "descripcion": "Aullador, observando desde las ramas de la selva.",
       "ancho": 1600,
-      "alto": 1149
+      "alto": 1149,
+      "color": "#666f4f"
     },
     {
       "src": "images/vaca-highland.jpg",
@@ -196,7 +213,8 @@
       "fecha": "",
       "descripcion": "El clásico flequillo de las vacas peludas de las tierras altas.",
       "ancho": 1600,
-      "alto": 1106
+      "alto": 1106,
+      "color": "#af9e66"
     },
     {
       "categoria": "Aves",
@@ -205,7 +223,8 @@
       "especie": "Tacuarita",
       "lugar": "asd",
       "ancho": 2310,
-      "alto": 1719
+      "alto": 1719,
+      "color": "#42483c"
     }
   ]
 }

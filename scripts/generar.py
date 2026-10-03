@@ -78,6 +78,24 @@ for foto in fotos:
     im.save(destino, "JPEG", quality=78, optimize=True, progressive=True)
     print("Miniatura creada:", mini)
 
+# ---------- 1c. Tamaño y color que falten (la galería los usa para no "saltar") ----------
+completadas = 0
+for foto in fotos:
+    src = ruta(foto["src"])
+    if Image is None or not os.path.exists(src) or (foto.get("ancho") and foto.get("alto") and foto.get("color")):
+        continue
+    im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
+    foto.setdefault("ancho", im.width)
+    foto.setdefault("alto", im.height)
+    if not foto.get("color"):
+        r, g, b = im.resize((1, 1), Image.LANCZOS).getpixel((0, 0))
+        foto["color"] = "#%02x%02x%02x" % (r, g, b)
+    completadas += 1
+if completadas:
+    with open(os.path.join(SALIDA, "fotos.json"), "w", encoding="utf-8") as f:
+        json.dump({"fotos": fotos}, f, ensure_ascii=False, indent=2)
+    print(f"Datos completados en {completadas} fotos")
+
 # ---------- 2. Una página por foto (vista previa al compartir) ----------
 PLANTILLA = """<!DOCTYPE html>
 <html lang="es">
